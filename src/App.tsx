@@ -530,18 +530,20 @@ export default function App() {
              </div>
           </div>
         )}
-        <PanicOverlay 
-          isOpen={isPanicOpen} 
-          onClose={() => {
-            setIsPanicOpen(false);
-            if (themeMode === 'child' && childAutonomyFilter) {
-              setIsPostCrisisDiaryOpen(true);
-            }
-          }} 
-          themeMode={themeMode}
-          kidsTheme={kidsTheme}
-          isSmsSent={isSmsSent}
-        />
+        {isPanicOpen && (
+          <PanicOverlay 
+            isOpen={true} 
+            onClose={() => {
+              setIsPanicOpen(false);
+              if (themeMode === 'child' && childAutonomyFilter) {
+                setIsPostCrisisDiaryOpen(true);
+              }
+            }} 
+            themeMode={themeMode}
+            kidsTheme={kidsTheme}
+            isSmsSent={isSmsSent}
+          />
+        )}
         <GuardianAlertOverlay 
            isOpen={isGuardianAlertOpen} 
            onAccept={acceptRefuge} 
