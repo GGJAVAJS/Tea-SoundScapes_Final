@@ -283,7 +283,7 @@ export default function WaterShader() {
 
     let ro: ResizeObserver | null = null;
     const applySize = () => {
-      const dpr = 0.75;
+      const dpr = 0.50;
       const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
       const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
       if (canvas.width !== w || canvas.height !== h) {
@@ -304,7 +304,7 @@ export default function WaterShader() {
       gl.useProgram(program);
       applySize();
 
-      const dpr = 0.75;
+      const dpr = 0.50;
       uRes   && gl.uniform3f(uRes, canvas.width, canvas.height, dpr);
       uTime  && gl.uniform1f(uTime, t);
       uMouse && gl.uniform4f(uMouse, mouse.x, mouse.y, mouse.l, mouse.r);

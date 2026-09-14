@@ -455,7 +455,7 @@ export default function NatureLandscapeShader() {
 
     let ro: ResizeObserver | null = null;
     const applySize = () => {
-      const dpr = 0.75;
+      const dpr = 0.50;
       const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
       const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
       if (canvas.width !== w || canvas.height !== h) {
@@ -476,7 +476,7 @@ export default function NatureLandscapeShader() {
       gl.useProgram(program);
       applySize();
 
-      const dpr = 0.75;
+      const dpr = 0.50;
       uRes   && gl.uniform3f(uRes, canvas.width, canvas.height, dpr);
       uTime  && gl.uniform1f(uTime, t);
       uFrame && gl.uniform1i(uFrame, frame);
