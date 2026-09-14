@@ -304,7 +304,7 @@ export async function playSound(type: SoundType) {
           syntheticSourceNode.buffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
           syntheticSourceNode.loop = true;
           syntheticSourceNode.connect(gainNode);
-          targetVolume = 0.3;
+          targetVolume = 0.55;
           extraSources.push(osc1, osc2, lfo, lfoGain, mixGain);
         } else if (type === 'som-c') {
           const osc = ctx.createOscillator();
@@ -328,7 +328,7 @@ export async function playSound(type: SoundType) {
           syntheticSourceNode.buffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
           syntheticSourceNode.loop = true;
           syntheticSourceNode.connect(gainNode);
-          targetVolume = 0.5;
+          targetVolume = 0.8;
           extraSources.push(osc, lfo, lfoGain, filter);
         } else {
           syntheticSourceNode.connect(gainNode);
