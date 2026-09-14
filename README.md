@@ -1,44 +1,21 @@
-# 🚀 DIRETRIZ DE MIGRAÇÃO ARQUITETURAL: TEA SoundScapes (Web ➔ React Native)
+# 🚀 DIRETRIZ DE ARQUITETURA TÉCNICA E PWA: TEA SoundScapes (React Web)
 
-**Atenção Agente Antigravity:** Este documento é a sua **Diretriz Estrita de Arquitetura**. Você é o engenheiro responsável por portar o ecossistema "TEA SoundScapes" (atualmente em React/Vite web) para um aplicativo móvel nativo suportando iOS e Android via **React Native e Expo**.
-
-Siga os comandos e os mapeamentos abaixo de forma exaustiva. Não desvie da stack estipulada. 
+**Atenção Agente Antigravity:** Este documento é a sua **Diretriz Estrita de Arquitetura**. Você é o engenheiro responsável por manter e evoluir o ecossistema "TEA SoundScapes" como um aplicativo Web progressivo (PWA) em React/Vite. Siga estritamente as regras de isolamento de estado, temas e renderização aqui definidas.
 
 ---
 
-## 0. Setup e Inicialização do Ambiente
-Antes de converter os componentes lógicos, você deve preparar o terreno:
-1. Preserve a lógica bruta do projeto original (funções puras, estados), mas inicie a estrutura mobile inicializando um novo app Expo limpo caso os artefatos nativos (`app.json`, configuração do metro bundler) não existam.
+## 1. Arquitetura e Roteamento (React Web PWA)
 
-2. Não tente usar o `package.json` original para rodar o app. Instale as dependências nativas correspondentes citadas neste documento (ex: `three`, `@react-three/fiber`, `expo-sqlite`) usando `npx expo install` para garantir a compatibilidade de versões.
+A interface atual web é baseada em manipulação de estado (`currentView`, `subView`) e componentes HTML semânticos. Para a arquitetura, você deve adotar uma abordagem estritamente voltada para componentes móveis e roteamento em pilha (Stack).
 
+### 1.1 Primitivas de UI e Componentização
+O aplicativo utiliza primitivas HTML semânticas (`<div>`, `<section>`, `<button>`, `<input>`, `<textarea>`) estilizadas rigorosamente com Tailwind CSS. Mantenha a acessibilidade nativa da web e garanta que os botões tenham feedback visual claro.
 
----
+### 1.2 Roteamento (Roteamento Web)
+O roteamento é feito de forma leve através de manipulação de estado (`currentView`, `subView`). O app funciona como um Single Page Application (SPA).
 
-## 1. Mapeamento de Arquitetura e Roteamento (Web para Nativo)
-
-A interface atual web é baseada em manipulação de estado (`currentView`, `subView`) e componentes HTML semânticos. Para a migração nativa, você deve adotar uma abordagem estritamente voltada para componentes móveis e roteamento em pilha (Stack).
-
-### 1.1 Conversão de Primitivas de UI
-Você deve substituir TODAS as primitivas HTML pelas primitivas do React Native:
-- `<div>` e `<section>` ➔ `<View>` ou `<SafeAreaView>`
-- `<span>`, `<p>`, `<h1>` a `<h6>` ➔ `<Text>` (respeitando herança de estilo de fontes)
-- `<button>` ➔ `<TouchableOpacity>` ou `<Pressable>`
-- `<input>`, `<textarea>` ➔ `<TextInput>` (atente-se para `keyboardType` e suporte a multiline)
-- `<img>` ➔ `<Image>` (usando `source={ uri: ... }` para web ou `source={ require('...') }` para assets locais)
-- `<div className="overflow-y-auto">` ➔ `<ScrollView>` ou `<FlatList>` (mandatório para listas de contatos ou diários)
-
-### 1.2 Roteamento (React Navigation)
-Abandone as condicionais de renderização de telas (`currentView === 'home'`). Implemente o `@react-navigation/native`.
-- **Root Navigator (`createNativeStackNavigator`):**
-  1. `OnboardingStack` (Telas de Splash, Auth e Anamnese Sensorial).
-  2. `MainApp` (Acessível após o Onboarding).
-- **MainApp Navigator (`createBottomTabNavigator`):**
-  - **Aba Home:** Onde habita o Mixer de Sons, os Temas (Espaço, Dino, Carros) e atalhos rápidos.
-  - **Aba Diário (DiaryView):** Onde ficam os rastreadores de humor, sono e geração de relatórios com o Gemini.
-  - **Aba Comunidade:** Mapa e Refúgios Seguros.
-  - **Aba Perfil (ProfileView):** Acesso a permissões, rede de apoio e configurações.
-- **Modals/Overlays:** `PanicOverlay`, `EmergencySmsOverlay` e `GuardianAlertOverlay` DEVEM ser implementados como Modals com `presentation: 'transparentModal'` no Stack Navigator para se sobreporem a toda a aplicação imediatamente.
+- **Telas Principais (Views):** HomeView, DiaryView, CommunityView, ProfileView e GuardianView.
+- **Modals/Overlays:** `PanicOverlay`, `EmergencySmsOverlay` e `GuardianAlertOverlay` são renderizados condicionalmente com `z-index` altíssimo e `AnimatePresence` do `framer-motion` para se sobreporem a toda a aplicação imediatamente.
 
 ### 1.3 A Tela Guardião (`GuardianView.tsx`)
 A aba "Guardião" (Rede de Apoio e Disparo de Emergência) é a **segunda aba principal** do aplicativo (junto com Home, Diário, Social e Perfil).
@@ -47,7 +24,7 @@ Ela possui regras estritas baseadas no Modo Atual (Adulto vs Infantil):
 - **Modo Infantil:** A interface é coberta por animações imersivas dependendo do tema:
   - **Tema Espaço Sideral:** `SpaceBloomShader` como fundo imersivo.
   - **Tema Dinossauro:** `MistyLakeShader` como fundo ambiental.
-  - **Tema Carros (Semáforo Inteligente):** A tela Guardião não usa um Shader 3D tradicional aqui. Em vez disso, ela é um "Semáforo Inteligente" acoplado ao microfone (`expo-av`). 
+  - **Tema Carros (Semáforo Inteligente):** A tela Guardião não usa um Shader 3D tradicional aqui. Em vez disso, ela é um "Semáforo Inteligente" acoplado ao microfone (`HTML5 Audio / Web Audio API`). 
   - **Estética & Layout:** Fundo asfalto (cinza super escuro). Utiliza formas geométricas limpas lembrando um poste/semáforo (borda preta arredondada com as 3 lentes).
   - **Luz Verde (Ruído Seguro):** Verde neon brilhante (`#22c55e` ou similar) pulsando suavemente com brilho externo (Glow).
   - **Luz Amarela (Atenção):** Amarelo vibrante (`#eab308`), aciona quando o ruído ambiente passa de 40dB.
@@ -60,28 +37,26 @@ O Modo Adulto é minimalista e escuro. O Modo Infantil é temático e lúdico. A
 
 
 ### 1.5 Estilização e Animações (Crítico)
-O projeto web original utiliza TailwindCSS/CSS padrão. O renderizador do React Native falhará catastroficamente se você mantiver propriedades `className` não tratadas.
-- **Estilos:** Você DEVE utilizar a biblioteca **NativeWind** para manter o uso das classes utilitárias do Tailwind no mobile, ou reescrever as classes utilizando `StyleSheet.create()`.
-- **Animações:** Qualquer transição fluida, *keyframes* CSS ou uso do `framer-motion` original deve ser convertido OBRIGATORIAMENTE para a biblioteca nativa `react-native-reanimated`.
+O projeto utiliza **TailwindCSS** para estilização. As animações, transições fluidas e *keyframes* são feitas OBRIGATORIAMENTE usando **`framer-motion`** (como `<motion.div>`), garantindo uma UI suave e responsiva.
 
 ---
 
 ## 2. Detalhamento Faltante: Aba Guardião e Animações Contextuais
 
-Abaixo estão as diretrizes arquiteturais para recursos visuais avançados que DEVEM ser portados para o React Native, abordando telas essenciais da navegação e efeitos customizados.
+Abaixo estão as diretrizes arquiteturais para recursos visuais avançados que DEVEM existir no PWA, abordando telas essenciais da navegação e efeitos customizados.
 
 ### 2.1 Tela SOS Pânico (`PanicOverlay.tsx`) - Animações do Tema Carros
 Na tela de emergência do Modo Infantil, a criança é guiada por exercícios respiratórios ("Inspire... Segure... Expire...").
 - **Tema Carros (Pista Infinita):** A tela SOS Pânico simula o interior de um carro à noite numa rodovia.
   - **Cores & Estilos (Dashboard):** Elementos em laranja fluorescente, azul painel e preto brilhante. As luzes de RPM e velocidade ditam o ritmo da respiração.
   - **Background Animado:** Rodovia/pistas com faixas pontilhadas amarelas/brancas em translação rápida simulando alta velocidade.
-  - **Diretriz de Migração:** No React Native, **utilize `react-native-reanimated` (`useSharedValue` e `withRepeat`)** para manter a pista em movimento contínuo. As luzes do "velocímetro/RPM" devem preencher (scale/opacity) do verde ao laranja acompanhando perfeitamente a fase da respiração da criança ("Inspire... Expire...").
+  - **Diretriz de Migração:** Utilizando `framer-motion`, mantenha `animate` com `repeat: Infinity` para manter a pista em movimento contínuo. As luzes do "velocímetro/RPM" devem preencher (scale/opacity) do verde ao laranja acompanhando perfeitamente a fase da respiração da criança ("Inspire... Expire...").
 
 ### 2.2 Animações do Player Interno (Aba Social / Comunidade)
 A Aba Social (`CommunityView`) possui um *Player Interno* exibido no rodapé ao reproduzir um Mixer de Áudio compartilhado por outro usuário.
 - **Equalizador Dinâmico:** Quando ativo, a UI pulsa barras de equalizador (coloridas de acordo com a "Cor de Destaque" do mix selecionado).
 - **Glow Ativo:** O ícone do áudio em reprodução pisca e expande ondas concêntricas (efeito *ripple*). 
-- **Diretriz de Migração:** A lógica de estado que aciona as barras do equalizador e os anéis concêntricos foi feita em Framer Motion na Web. No React Native, você DEVE reconstruir isso acionando múltiplos *SharedValues* independentes com `withRepeat(withSequence(...), -1, true)` para garantir que o player pulse suavemente em 60fps na base da tela sem travar a navegação pela lista da comunidade.
+- **Diretriz de Migração:** A lógica de estado que aciona as barras do equalizador e os anéis concêntricos foi feita em Framer Motion na Web. Na Web, mantenha o uso do Framer Motion acionando múltiplos estados para garantir que o player pulse suavemente em 60fps na base da tela sem travar a navegação pela lista da comunidade.
 
 
 ### 2.3 Modificação Exclusiva: Mixer "Ruído Rosa" (Player Interno - Modo Infantil)
@@ -92,11 +67,11 @@ O Mixer de "Ruído Rosa" (Pink Noise), quando acionado no **Player Interno da Ab
 ---
 
 
-## 3. Diretriz Crítica de Shaders e WebGL (Expo GL)
+## 3. Diretriz Crítica de Shaders e WebGL
 
-O aplicativo web depende fortemente de shaders extraídos do Shadertoy/21st.dev para relaxamento e foco. No React Native, o renderizador web (Canvas HTML) falhará.
+O aplicativo web depende fortemente de shaders extraídos do Shadertoy/21st.dev para relaxamento e foco.
 
-**Comando de Execução:** Você OBRIGATORIAMENTE utilizará a trindade: `@react-three/fiber` (versão nativa), `three` e `expo-gl`. O componente `<Canvas>` será importado de `@react-three/fiber/native`.
+**Comando de Execução:** Você OBRIGATORIAMENTE utilizará `@react-three/fiber` (versão web) e `three` padrão.
 
 Os códigos GLSL originais (Vertex e Fragment shaders) devem ser **preservados** e injetados em um `THREE.ShaderMaterial`.
 
@@ -1533,14 +1508,11 @@ export function SoundNebulaShader({ dominantSoundId }: SoundNebulaShaderProps) {
 
 ---
 
-## 3. Migração de Banco de Dados e Persistência Local
+## 4. Banco de Dados e Persistência Local
 
-O projeto web original utiliza `localStorage` (para perfis e temas) e `IndexedDB` (para histórico de Diários/Humor). No ambiente mobile, essa abordagem é inaceitável.
-
-**Implementação Obrigatória:**
-1. **Preferências Simples (KV Storage):** Para configurações, temas, nome do usuário, permissões, utilize **AsyncStorage** (`@react-native-async-storage/async-storage`) ou, preferencialmente, **React Native MMKV** para acesso síncrono e veloz.
-2. **Dados Estruturados e Diários (SQLite):** Todo o histórico de humor, métricas de sono, anotações de diário e "Resumos Gerados por IA" devem ser migrados do `IndexedDB` para um banco SQL local.
-   - Utilize a biblioteca **`expo-sqlite`**.
+1. **Preferências Simples (KV Storage):** Para configurações, temas, nome do usuário, permissões, utilize **`localStorage`** ou **`IndexedDB`** para acesso síncrono e veloz.
+2. **Dados Estruturados e Diários (SQLite):** Todo o histórico de humor, métricas de sono, anotações de diário e "Resumos Gerados por IA" devem ser migrados do `IndexedDB` para um banco de dados no navegador (IndexedDB).
+   - Utilize a biblioteca **`web-sqlite`**.
    - **Esquema Básico Esperado (`diary_entries`):**
      - `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
      - `user_email` (TEXT - para garantir o isolamento multitenant no dispositivo)
@@ -1556,9 +1528,9 @@ O projeto web original utiliza `localStorage` (para perfis e temas) e `IndexedDB
 
 As chamadas ao Gemini (via `@google/genai`) são a espinha dorsal do suporte psicológico da aplicação (análise de crise, insights diários).
 
-**Estratégia de Integração Mobile:**
+**Estratégia de Integração:**
 - **Local da Chamada:** As requisições para resumir a semana do usuário ou analisar entradas de diário devem ocorrer preferencialmente através de um gateway/backend server (API routes, Cloud Functions).
-- **Fallback Client-side (Se estritamente necessário no MVP):** Caso você deva acionar diretamente do app RN, você utilizará a API `fetch` padrão do React Native, conectando ao REST endpoint do Gemini (ou usando a SDK TypeScript) enviando o prompt instrucional de "Aja como um psicoterapeuta especialista em neurodivergência".
+- **Fallback Client-side (Se estritamente necessário no MVP):** Caso você deva acionar diretamente do app Web/PWA, você utilizará a API `fetch` padrão do React Web, conectando ao REST endpoint do Gemini (ou usando a SDK TypeScript) enviando o prompt instrucional de "Aja como um psicoterapeuta especialista em neurodivergência".
 - **Gestão de Chaves:** Em NENHUMA hipótese faça hardcode da `GEMINI_API_KEY`. O app deve consumi-la via `process.env.EXPO_PUBLIC_GEMINI_API_KEY` injetado via Eas Build ou extrair de um `Expo SecureStore`.
 
 ---
@@ -1566,27 +1538,27 @@ As chamadas ao Gemini (via `@google/genai`) são a espinha dorsal do suporte psi
 ## 5. Gestão de Assets, Ícones e Permissões
 
 ### 5.1 Ícones
-Substitua a biblioteca web `lucide-react` imediatamente por **`lucide-react-native`**.
-O agente deve se atentar que os ícones no RN exigem propriedades explícitas de `color` (string) e `size` (number), não sendo controlados por classes do Tailwind como `text-white w-6 h-6`.
+Substitua a biblioteca web `lucide-react` imediatamente por **`lucide-react`**.
+O agente deve usar as classes do Tailwind para estilizar os ícones do lucide-react (ex: `className="text-white w-6 h-6"`).
 
 ### 5.2 Fontes Customizadas
 A aplicação exige as fontes: `Poppins` e `Playfair Display`.
-- Utilize a biblioteca `expo-font`.
-- Crie um hook `useFonts` no `App.js`/`App.tsx` raiz (e retorne `null` ou um `<SplashScreen />` usando `expo-splash-screen` até o carregamento completo).
+- Utilize a biblioteca `web-font`.
+- Crie um hook `useFonts` no `App.js`/`App.tsx` raiz (e retorne `null` ou um `<SplashScreen />` usando `web-splash-screen` até o carregamento completo).
 
 ### 5.3 Mídias e Áudios flutuantes
 - As imagens como do **Tema Espaço Sideral:** `planet-big.png`, `planet2.png`, `moon.png`, `meteor.png`, `satellite.png`, `rocekt.png`, `asteroide.png`, `asteroide2.png`, `estrela_cadente.png`, `naveet.png`, `et.png`, icones de humor (`happy-astronaut.png`, `astronaut-calm.png`, `alien_neutral.png`, `alien_sad.png`, `alien_rage.png`), 
 **Tema Dinossauros:** `cloud.png`, `fossil.png`, `fossil_rex.png`, `dino_fofo.png`, `dino_alto.png`, `fantasia_dino.png`, `arvore.png`, `floresta.png`, `palmeiras.png`, os icones de humor (`dinosaur_happy.png`, `dinosaur_smile.png`, `dinosaur_neutral.png`, `dynosaurus_angry.png`, `dinossaur_rage.png`), 
 **Tema Carros:** `race-lights.png`, `speed-meter.png`, `podium-stand.png`, `bandeira_corrida.png`, `carro.png`, `cone.png `, `piloto.png`, `chegada.png`, `cronometro.png`, `helmet.png `, devem ser rigorosamente distribuídas em suas subpastas dentro de `/assets/themes/` (ex: `/assets/themes/space`, `/assets/themes/dinossauro`, `/assets/themes/cars`) e requisitadas no código: `<Image source={ require(\'../assets/themes/space/rocekt.png\') } style={ width: 100, height: 100 } />`.
-- Para o **Mixer de Áudios**, utilize o pacote **`expo-av`**. Inicialize as instâncias usando `Audio.Sound.createAsync()`.
+- Para o **Mixer de Áudios**, utilize o pacote **`HTML5 Audio / Web Audio API`**. Inicialize as instâncias usando a API Web nativa (`new Audio()` ou Web Audio Context).
 
 ### 5.4 Permissões (Hardware)
 O fallback HTML5 para varrer permissões (`navigator.permissions`) será inteiramente **apagado**. 
-Você deve usar obrigatoriamente as APIs de sistema do Expo na View "Permissões e Privacidade":
-- Microfone: `expo-av` (`Audio.requestPermissionsAsync()`).
-- Câmera: `expo-camera` (`Camera.requestCameraPermissionsAsync()`).
-- Localização: `expo-location` (`Location.requestForegroundPermissionsAsync()`).
-- Notificações: `expo-notifications` (`Notifications.requestPermissionsAsync()`).
+Você deve usar as APIs web correspondentes na View "Permissões e Privacidade":
+- Microfone: `HTML5 Audio / Web Audio API` (`Audio.requestPermissionsAsync()`).
+- Câmera: `web-camera` (`Camera.requestCameraPermissionsAsync()`).
+- Localização: `web-location` (`Location.requestForegroundPermissionsAsync()`).
+- Notificações: `web-notifications` (`Notifications.requestPermissionsAsync()`).
 
 ---
 **Fim das Diretrizes.**
@@ -1594,7 +1566,7 @@ Ao iniciar o trabalho, leia este documento inteiramente e aplique a arquitetura 
 
 ## 6. Paleta de Cores e Identidade Visual (Design System)
 
-A separação dos temas via cor é o que baliza o isolamento lógico das interfaces. Abaixo estão as paletas extraídas do Tailwind que DEVEM ser portadas via `StyleSheet` nativo ou NativeWind.
+A separação dos temas via cor é o que baliza o isolamento lógico das interfaces. Abaixo estão as paletas extraídas do Tailwind que DEVEM ser portadas via `StyleSheet` nativo ou TailwindCSS.
 
 ### 6.1 Modo Adulto & Telas Comuns (Login, Setup)
 - **Fundo Principal (Background):** Slate/Dark muito profundo (`bg-slate-950`, `#020617` ou Black `#000000`).
@@ -1616,13 +1588,13 @@ As cores não apenas definem a estética, mas injetam-se nas caixas de diálogos
   - **Fundo / Container Base:** Cinza Asfalto / Dark.
   - **Cor de Ação/Destaque (Accent):** Amarelo Trânsito/Sinalização (`#FACC15`).
 
-*(Nota ao Agente: Utilize Context API ou um hook como `useTheme` no RN para expor essas variáveis. NÃO interlace classes inline diretamente.)*
+*(Nota ao Agente: Utilize Context API ou um hook como `useTheme` para expor essas variáveis. NÃO interlace classes inline diretamente.)*
 
 ---
 
 ## 7. Mapeamento Completo de Assets e Ícones
 
-Todo asset estático referenciado no React Web precisará ser movido para a estrutura de pastas nativa exigida no Expo. A organização DEVE ser estritamente dividida:
+Todo asset estático referenciado no React Web precisará ser movido para a estrutura de pastas exigida pelo Vite (ex: `public/` ou `src/assets/`). A organização DEVE ser estritamente dividida:
 - **Sons e Áudios:** Devem ser colocados em `/assets/sounds/`.
 - **Imagens dos Temas:** Devem ser organizadas dentro de `/assets/themes/`, divididas em subpastas específicas para não haver colisão de nomes.
 
@@ -1635,7 +1607,7 @@ O App utiliza abundantes imagens 2D (geradas por IA ou vetorizadas) com canal Al
 
 > **Comando de Migração de Imagem:** 
 > Web: `<img src="/planet.png" />` ou `style={{ backgroundImage: "url('/et.png')" }}`
-> Nativo: `<Image source={require('../assets/themes/space/planet-big.png')} style={{ width: X, height: Y, resizeMode: 'contain' }} />`
+> `<img src="..." className="..." />`
 
 ### 7.2 Ícones de Vetor (Lucide)
 O sistema web usa amplamente o pacote `lucide-react`. 
@@ -1647,17 +1619,17 @@ O sistema web usa amplamente o pacote `lucide-react`.
 
 > **REGRA DE PRESERVAÇÃO ESTRUTURAL:** Os ícones de interface não temáticos (Play, Pause, Coração, Lixeira, Configurações de som, Botão de 3 pontinhos) DEVEM ser preservados como vetores Lucide. Não tente substituí-los por PNGs ou removê-los do código. Eles são vitais para a usabilidade tanto no modo Adulto quanto no Infantil.
 > **Comando de Migração de Ícone:**
-> Substituir todo o pacote para `lucide-react-native`.
+> Mantenha o pacote `lucide-react`.
 > Adicionar tamanho e cor via propriedades explícitas, já que as classes Tailwind não aplicarão regras SVG (ex: `<Mic size={24} color="#38bdf8" />`).
 
 ---
 
 ## 8. Posicionamento Estrito de Assets (Pixel-Perfect)
 
-**ATENÇÃO:** O usuário exige que as posições originais das imagens flutuantes (Temas Infantis) sejam preservadas com 100% de fidelidade. Você NÃO tem permissão para alterar as coordenadas visuais na conversão para React Native.
+**ATENÇÃO:** O usuário exige que as posições originais das imagens flutuantes (Temas Infantis) sejam preservadas com 100% de fidelidade. Você NÃO tem permissão para alterar as coordenadas visuais na conversão para React Web.
 
 - No Web, usamos as classes Tailwind utilitárias (ex: `top-[2%] left-[10%] w-36`).
-- No React Native, você deve criar um `StyleSheet` (ou usar NativeWind) que mapeie exatamente esses valores matemáticos em posições absolutas baseadas na tela (`Dimensions.get('window')` ou porcentagens de flex).
+- Na Web, usamos as classes Tailwind utilitárias ou estilos inline absolutos para mapear exatamente esses valores matemáticos.
 
 **Exemplo - Espaço Sideral (`FloatingSpaceBackground.tsx`):**
 - **Planet Big:** `bottom: -10%`, `right: -30%`, largura `w-[32rem]`, z-index `0`
@@ -1721,9 +1693,9 @@ A aba "Comunidade" possui um design complexo, escuro e vibrante, que requer aten
   - Quando ativos: Fundo mais iluminado (`bg-white/10`), borda evidenciada (`border-white/30`).
 - **Cards dos Mixers (RecipeCards):**
   - Fundo do cartão: `bg-[#060b13]`.
-  - Efeito "Glow" Dinâmico: A cor de cada mix (receita) injeta-se em uma *box-shadow* (`0 0 20px {cor}40`) e num gradiente radial rotativo em background (no Web, manipulado via Framer Motion). No React Native, esse *glow* e rotação devem ser reconstruídos usando `react-native-reanimated` ou `react-native-linear-gradient`.
+  - Efeito "Glow" Dinâmico: A cor de cada mix (receita) injeta-se em uma *box-shadow* (`0 0 20px {cor}40`) e num gradiente radial rotativo em background (no Web, manipulado via Framer Motion). Na Web, esse *glow* e rotação devem ser reconstruídos usando `framer-motion` ou `CSS gradients padrão ou framer-motion`.
 - **Animações (Equalizador):**
-  - Durante o *play* de um mix na comunidade, o ícone central pulsa (escala e opacidade) e as barras (tags) de volume flutuam, gerando um pequeno brilho circular na ponta de cada barra (`box-shadow` dinâmico atrelado à cor da receita). Tudo isso deve ser migrado para o `SharedValue` do Reanimated no mobile.
+  - Durante o *play* de um mix na comunidade, o ícone central pulsa (escala e opacidade) e as barras (tags) de volume flutuam, gerando um pequeno brilho circular na ponta de cada barra (`box-shadow` dinâmico atrelado à cor da receita). Tudo isso deve ser implementado no Web usando `framer-motion` (via `useTransform` ou `useSpring`).
 
 ---
 
@@ -1731,15 +1703,15 @@ A aba "Comunidade" possui um design complexo, escuro e vibrante, que requer aten
 
 **A. Importação de Áudio Personalizado (Mixer Principal)**
 - **Web Atual:** O usuário clica em "Importar Áudio", o app aciona um input invisível `<input type="file" accept="audio/*">`. O áudio selecionado ganha o prefixo `imported-<timestamp>` e seu `URL.createObjectURL` é carregado pelo Audio Engine, enquanto a interface exibe o `<MathematicalVisualizer>` para preencher a tela com o áudio desconhecido.
-- **Migração (React Native):** O agente DEVE remover a tag de input HTML. Ao clicar em Importar Áudio, o sistema acionará obrigatoriamente a biblioteca nativa **`expo-document-picker`** (`getDocumentAsync({ type: 'audio/*' })`). A URI local será salva no estado e montada num player do pacote **`expo-av`**.
+- **Migração (React Web):** O agente DEVE remover a tag de input HTML. Ao clicar em Importar Áudio, o sistema acionará obrigatoriamente a biblioteca web **`web-document-picker`** (`getDocumentAsync({ type: 'audio/*' })`). A URI local será salva no estado e montada num player do pacote **`HTML5 Audio / Web Audio API`**.
 
 **B. Publicação de um Mixer Personalizado**
 - **Web Atual:** Utiliza o componente `<PublishMixOverlay>`. Ele captura o estado atual de `volumes`, sons ativos, configurações de Equalizador (Bass, Mid, Treble) definidos pelo usuário, pede um Título, uma Categoria, uma Palavra-chave/Cor e salva no cache (`localStorage` via chave `published_community_mixes`).
-- **Migração (React Native):** O overlay de publicação deve ser um `Modal` nativo sobreposto. Os dados capturados do painel devem ser preservados e enviados para o **AsyncStorage** (para uso local provisório), permitindo que os mixes customizados surjam imeditamente no fluxo da Aba Social (`CommunityView`), mantendo toda a arquitetura de equalização associada.
+- **Migração (React Web):** O overlay de publicação deve ser um `Modal` nativo sobreposto. Os dados capturados do painel devem ser preservados e enviados para o **AsyncStorage** (para uso local provisório), permitindo que os mixes customizados surjam imeditamente no fluxo da Aba Social (`CommunityView`), mantendo toda a arquitetura de equalização associada.
 
 **C. Sincronização Semântica de Ícones (Palavras-chave)**
 - Ao importar um áudio local ou publicar um mixer na Comunidade, o aplicativo possui uma lógica estrita de atribuição de ícone baseada em **Palavras-Chave (Keywords) presentes no título** digitado pelo usuário.
-- O Agente Antigravity DEVE replicar este mapeamento (Regex/Includes) usando os ícones do `lucide-react-native` ao renderizar as listas de áudio:
+- O Agente Antigravity DEVE replicar este mapeamento (Regex/Includes) usando os ícones do `lucide-react` ao renderizar as listas de áudio:
   - Se o título contiver "mente", "foco" ou "estudo" -> Ícone `Brain`
   - Se o título contiver "chuva", "tempestade" ou "rain" -> Ícone `CloudRain`
   - Se o título contiver "fogo", "lareira" ou "fire" -> Ícone `Flame`
@@ -4886,7 +4858,7 @@ A tela `OnboardingView.tsx` gerencia 10 passos sequenciais (alguns bifurcados po
 **Configurações Globais do Onboarding:**
 - **Background Fixo:** Fundo escuro absoluto `bg-[#060b13]`.
 - **Navegação Interna:** Há um botão "Voltar" nativo flutuando no topo para regredir o passo atual.
-- **Animações (Transição entre Passos):** Na Web usamos `motion.div` com `opacity: 0, x: 20` para `opacity: 1, x: 0`. No RN, utilize a propriedade de animação de slide horizontal do `@react-navigation/native` ou englobe os sub-passos em views animadas com `react-native-reanimated`.
+- **Animações (Transição entre Passos):** Na Web usamos `motion.div` com `opacity: 0, x: 20` para `opacity: 1, x: 0`. Englobe os sub-passos em views animadas com `framer-motion`.
 
 **Detalhamento Etapa por Etapa:**
 
@@ -4895,10 +4867,10 @@ A tela `OnboardingView.tsx` gerencia 10 passos sequenciais (alguns bifurcados po
   - Cor do Botão "Começar": Rosa/Vermelho vibrante (`#f43f5e`) com *glow*.
 - **Etapa 2: Registro de E-mail**
   - Solicita o e-mail (usado depois no SQLite local para isolar os dados das contas).
-  - Possui botões visuais para Outlook, Google e Facebook (no RN, mantenha os ícones via imagens locais ou remotas `require/uri`).
+  - Possui botões visuais para Outlook, Google e Facebook (mantenha os ícones via imagens locais estáticas).
 - **Etapa 3: A ESCOLHA CRÍTICA (Modo Adulto vs. Infantil)**
   - O usuário escolhe entre `setThemeMode('adult')` ou `setThemeMode('child')`.
-  - **Se o usuário escolher "Infantil":** O botão inferior de "Avançar" abandona a cor `bg-accent-blue` e ganha um gradiente linear Laranja vibrante (`linear-gradient(90deg, #ff0000 52%, #ff5c00 84%)`) e altera a classe CSS global do body (`document.body.classList.add('child-mode')` -> No RN, isso deve acionar a store do Zustand para ejetar cores diferentes nas próximas telas).
+  - **Se o usuário escolher "Infantil":** O botão inferior de "Avançar" abandona a cor `bg-accent-blue` e ganha um gradiente linear Laranja vibrante (`linear-gradient(90deg, #ff0000 52%, #ff5c00 84%)`) e altera a classe CSS global do body (`document.body.classList.add('child-mode')` -> Isso deve acionar a store do Zustand para ejetar cores diferentes nas próximas telas).
 - **Etapa 4: Diagnóstico de Ruído (Onde o barulho incomoda?)**
   - Renderiza uma lista de locais (Transporte, Escola, Trabalho, Shopping, Casa). Múltipla escolha (Array). Cores padrão baseadas no `accent-blue`.
 - **Etapa 5: Rede de Apoio (Guardião)**
@@ -4906,7 +4878,7 @@ A tela `OnboardingView.tsx` gerencia 10 passos sequenciais (alguns bifurcados po
   - Uma pergunta crítica embaixo: "Você faz acompanhamento com psicólogo?" (`setHasTherapist`).
 - **Etapa 6: Permissão de Microfone**
   - Educa o usuário sobre a segurança do monitoramento de áudio.
-  - Na web usamos `navigator.mediaDevices.getUserMedia`. **MIGRAÇÃO:** O Antigravity DEVE converter isso obrigatoriamente para `Audio.requestPermissionsAsync()` do `expo-av`.
+  - Na web usamos `navigator.mediaDevices.getUserMedia`. **MIGRAÇÃO:** O Antigravity DEVE converter isso obrigatoriamente para `Audio.requestPermissionsAsync()` do `HTML5 Audio / Web Audio API`.
 - **Etapa 7 (Modo Infantil): Escolha o seu Mundo!**
   - *Somente visível se o passo for 7 e `themeMode === 'child'`.*
   - A interface exibe "Qual é o seu mundo favorito? 🌎" com um texto Laranja Forte (`text-[#ff5c00]`).
@@ -4917,13 +4889,13 @@ A tela `OnboardingView.tsx` gerencia 10 passos sequenciais (alguns bifurcados po
   - Liga/desliga a booleana `childAutonomyFilter`. Se sim, a tela pós-crise exigirá uma avaliação de humor.
 - **Etapa 9 (Infantil) ou Etapa 7 (Adulto): Escolha seu Refúgio (Áudio de Emergência)**
   - O usuário escuta pre-views (Ruído Marrom, Som de Chuva, Som Delta Suave).
-  - *Atenção Migração:* O agente precisa invocar `Audio.Sound.createAsync` no Expo AV ao invés do nosso `playSound` web genérico para garantir que o áudio de preview toque na inicialização.
+  - *Atenção Migração:* O agente precisa invocar `Audio` (HTML5 Audio) ou Web Audio API ao invés do nosso `playSound` web genérico para garantir que o áudio de preview toque na inicialização.
 - **Etapa 10 (Somente Modo Infantil): Proteger o Diário 🔒 (PIN Parental)**
   - Obriga a inserção do `pin` e `confirmPin` de 4 dígitos.
   - Os inputs usam espaçamento largo de texto (`tracking-[1em]`) para destacar as bolinhas da senha. **Migração:** O Agente deve assegurar que o teclado nativo acione o `keyboardType="number-pad"` no `<TextInput>`.
 - **Etapa Final: Tudo Pronto ✨**
   - Um ícone gigante de confere (verde) anuncia que o cadastro está completo.
-  - Salva todos os dados no armazenamento local (No RN, use `expo-sqlite` ou `MMKV` atrelado ao email inserido no passo 2).
+  - Salva todos os dados no armazenamento local (Use `IndexedDB` ou `localStorage` atrelado ao email inserido no passo 2).
 
 
 ## 12. Detalhamento da Aba Perfil (`ProfileView`) e Telas EU
@@ -5008,11 +4980,11 @@ Quando a criança conclui o exercício de respiração (HUD de Carros, Pterodác
 O Termômetro reaproveita as mecânicas de avaliação visual da aba Diário, sendo sobreposto como um *Glass Card* ou Modal imersivo:
 - **Tema Espaço Sideral:** Exibe horizontalmente os 5 níveis de avatares (ex: do `alien_rage.png` ao `happy-astronaut.png`).
 - **Tema Dinossauros:** Exibe os 5 avatares interativos da família T-Rex (ex: do `dinossaur_rage.png` ao `dinosaur_happy.png`).
-- **Tema Carros (A Exceção de Assets):** Sem o uso de avatares PNG. A criança interage com componentes de **UI Nativos de Painel Analógico** (um slider/velocímetro visual ou medidor de temperatura do motor usando `react-native-reanimated`) para apontar o quão calma ela ficou após o exercício.
+- **Tema Carros (A Exceção de Assets):** Sem o uso de avatares PNG. A criança interage com componentes de **UI Nativos de Painel Analógico** (um slider/velocímetro visual ou medidor de temperatura do motor usando `framer-motion`) para apontar o quão calma ela ficou após o exercício.
 
 ### 15.3 Ação Final e Persistência
 Assim que a criança tocar na sua emoção atual:
-1. O aplicativo aciona o `expo-sqlite` (ou camada de repositório).
+1. O aplicativo aciona o `web-sqlite` (ou camada de repositório).
 2. Salva um registro na tabela `diary_entries` contendo a emoção escolhida, a tag de que ocorreu após um SOS Pânico, o timestamp e o `user_email`.
 3. Ouve-se um *feedback* sonoro positivo de conclusão.
 4. O Overlay de Pânico é totalmente desmontado (`unmount`), devolvendo a criança de forma suave (fade-out) para a tela em que ela estava (Home, Social, etc.).
@@ -5042,7 +5014,7 @@ A inteligência artificial processará o histórico de humor do usuário com **D
   - **Tipografia:** Fonte `Inter` ou `Plus Jakarta Sans`, peso médio, tamanho base legível (14px/16px), cor de texto suave e acolhedora (`text-gray-200`).
 
 #### B) Visão do Terapeuta (Exportação PDF)
-- **Onde renderiza:** Na função de "Exportar Relatório". O React Native deve gerar um documento usando bibliotecas como `expo-print` (HTML para PDF) e permitir o envio via `expo-sharing`.
+- **Onde renderiza:** Na função de "Exportar Relatório". A aplicação Web deve gerar um documento usando bibliotecas como bibliotecas Web de exportação PDF (HTML para PDF) e permitir o envio via Web Share API.
 - **System Prompt (Regra do Agente):** Analítico, clínico, puramente objetivo, focado em correlações matemáticas, gatilhos de estresse e frequência de ocorrências.
 - **Estrutura no Documento:** O agente deve injetar uma seção obrigatória na PRIMEIRA página do PDF chamada **"Resumo Analítico da IA"**, formatada com um parágrafo denso, técnico e estruturado.
 - **Exemplo de Retorno Exigido:** *"Padrão identificado: 80% dos eventos de humor baixo (escore 1-2) ocorreram pela manhã, estritamente atrelados ao gatilho 'Transporte e Barulho Urbano'."*
@@ -5051,7 +5023,7 @@ A inteligência artificial processará o histórico de humor do usuário com **D
   - O "Resumo Analítico da IA" deve estar dentro de uma caixa com borda sólida escura (`border: 1px solid #333`), fonte serifada ou sans-serif sóbria (Arial/Helvetica), espaçamento entrelinhas 1.5, sem nenhum elemento lúdico ou infantil, independentemente do tema da criança.
 
 ### 16.2 Privacidade e Contexto da IA
-O Agente Antigravity DEVE extrair as entradas do `expo-sqlite` (ou MMKV) localmente, formatá-las como um objeto JSON simplificado e injetá-las no payload do prompt para a API do Gemini, garantindo que nenhum dado identitário (nome real, e-mail) seja enviado na string de contexto, apenas os registros das crises, horários, humor (1-5) e gatilhos ativados.
+O Agente Antigravity DEVE extrair as entradas do `IndexedDB` (ou localStorage) localmente, formatá-las como um objeto JSON simplificado e injetá-las no payload do prompt para a API do Gemini, garantindo que nenhum dado identitário (nome real, e-mail) seja enviado na string de contexto, apenas os registros das crises, horários, humor (1-5) e gatilhos ativados.
 
 ---
 
@@ -5075,9 +5047,9 @@ A tela de entrada principal do aplicativo, focada na mesa de som.
         - Borda do Card (`border-white/10`).
         - Cabeçalho do Card: Ícone correspondente ao som (ex: nuvem para chuva), Nome do Som, e um pequeno badge "DESLIGADO" (cinza) ou "TOCANDO" (verde escuro). 
         - **Botão de Ligar (Switch):** Um Toggle Switch gigante nativo alinhado à direita no cabeçalho do Card (Azul quando ligado, cinza quando desligado).
-        - **Volume Geral:** Um *Slider* nativo cobrindo a largura do card. A bolinha (thumb) e a trilha preenchida devem ser pintadas no tom Azul Celeste (`#38bdf8`).
+        - **Volume Geral:** Um `<input type="range">` cobrindo a largura do card. A bolinha (thumb) e a trilha preenchida devem ser pintadas no tom Azul Celeste (`#38bdf8`).
         - **EQUALIZAÇÃO (FREQUÊNCIAS):** Seção interna do card com título minúsculo cinza. Possui um botão reset "Padrão" à direita.
-        - **Sub-Sliders de Frequência:** O card é dividido em 3 blocos menores lado a lado (Graves, Médios, Agudos). Cada um possui o nome, a porcentagem (ex: 50%) e um *Slider* nativo fininho.
+        - **Sub-Sliders de Frequência:** O card é dividido em 3 blocos menores lado a lado (Graves, Médios, Agudos). Cada um possui o nome, a porcentagem (ex: 50%) e um `<input type="range">` fininho.
           - Cores Obrigatórias das "Bolinhas" (Thumbs) do equalizador: **Graves = Amarelo** (`#eab308`), **Médios = Roxo** (`#a855f7`), **Agudos = Ciano/Azul** (`#06b6d4`).
       - **Rodapé do Painel:** Botão flutuante principal "Concluir" posicionado à direita em Azul Celeste vivo. Ao lado esquerdo, existe um botão secundário menor com o ícone de marca-página "Salvar Mix" (que ao ser clicado vira um check verde escrito "Salvo nos Favoritos!").
   - **REGRA DE ISOLAMENTO (CRÍTICA):** No Modo Infantil, o botão de 3 pontinhos DEVE DESAPARECER completamente (desmontado do DOM/React Tree). A criança só pode ligar/desligar o som, sem acesso a frequências e equalizadores, para evitar distorções sensoriais.
@@ -5107,11 +5079,11 @@ Dividida em **TRÊS sub-abas** no topo:
 - **Funcionalidade:** Renderiza os gráficos de progressão temporal (Barras/Linhas) baseados nas intensidades logadas. **Possui o Card de Insight da Inteligência Artificial** ancorado no topo, que processa a matriz de dados e devolve análises preditivas (descrito na Seção 16).
 - **Design & Fontes:** 
   - Fundo limpo para não conflitar com a leitura de dados. 
-  - Fonte dos Insights da IA: A caixa de Insight utiliza estilização Markdown (via lib `react-native-markdown-display` no RN), com fonte `Inter` ou nativa de corpo (`sans-serif`), garantindo espaçamento confortável (line-height: 1.5).
+  - Fonte dos Insights da IA: A caixa de Insight utiliza estilização Markdown (via lib `react-markdown`), com fonte `Inter` ou nativa de corpo (`sans-serif`), garantindo espaçamento confortável (line-height: 1.5).
   - O gráfico em si recebe highlights (pontos de inflexão) usando a Cor Accent do tema (Azul no adulto, Roxo/Amarelo/Verde no infantil).
 
 #### C) Aba "Relatórios" (Exportação e Histórico)
-- **Funcionalidade:** Exibe uma lista em formato de *Cards* com o histórico de PDFs ou relatórios já fechados. Permite baixar (`Download`) ou compartilhar (`Share2`) para o Psicólogo via intent nativo de compartilhamento do aparelho (WhatsApp, Email).
+- **Funcionalidade:** Exibe uma lista em formato de *Cards* com o histórico de PDFs ou relatórios já fechados. Permite baixar (`Download`) ou compartilhar (`Share2`) para o Psicólogo via API nativa de compartilhamento Web (`navigator.share`) (WhatsApp, Email).
 - **Design:** Lista vertical contendo filtros (Mais Recentes, Mais Antigos, Mês, Ano).
 - **Cores & Interações:** 
   - Os cartões de histórico ficam sob `rgba(255,255,255,0.05)` (Vidro/Glass).
@@ -5137,12 +5109,12 @@ O centro de gerenciamento (Logoff, Trocar Conta, Editar Perfil).
 **Funcionalidades Estritas dos Botões da Tela EU (ProfileView):**
 O Agente Antigravity DEVE replicar o mapeamento funcional dos menus da tela EU:
 1. **Editar Perfil (Nome):** Permite alterar o nome de usuário (exibido nas boas-vindas). 
-2. **Faço acompanhamento com psicólogo:** Toggle switch nativo que ativa ou desativa o painel extra de exportação (habilita o envio automático de relatórios em PDF do Diário).
+2. **Faço acompanhamento com psicólogo:** Toggle switch que ativa ou desativa o painel extra de exportação (habilita o envio automático de relatórios em PDF do Diário).
 3. **Contatos de Emergência:** Abre uma SubView para Adicionar, Editar ou Excluir números de telefone (usados no botão SOS Pânico e envio de SMS).
 4. **Permissões do Sistema:** Gerenciador de acessos essenciais do aparelho. Solicita explicitamente permissão de Localização (GPS para o Guardião) e Notificações (para lembretes de diário e alertas).
 5. **Tema Infantil (Apenas se configurado):** Abre a SubView de seleção de MUNDOS (Dinossauro, Carros, Espaço), que já injeta a cor correspondente em toda a UI.
 6. **Trocar de Usuário (Logout Seguro):** Botão com destaque leve. Encerra a sessão, volta para AuthView e OBRIGATORIAMENTE executa a função de "Reset Total de Estado" (limpa Contexts/Zustand e navegação).
-7. **Apagar Conta (Danger/Pânico):** Botão sublinhado ou vermelho. Exige confirmação ("Tem certeza?"). Exclui definitivamente as chaves locais (`MMKV` ou `AsyncStorage`) atreladas àquele `email` (Isolamento de Dados).
+7. **Apagar Conta (Danger/Pânico):** Botão sublinhado ou vermelho. Exige confirmação ("Tem certeza?"). Exclui definitivamente as chaves locais (`localStorage` ou `IndexedDB`) atreladas àquele `email` (Isolamento de Dados).
 
 ---
 
@@ -5183,13 +5155,13 @@ O Antigravity DEVE respeitar estritamente estas paletas (utilizando Tailwind cla
 
 ## 20. Interações, Hover e Estados de Clique (Feedback Tátil)
 
-O aplicativo web possui uma mecânica de feedback visual rigorosa (usando `:hover` e `:active` no CSS e Tailwind). Como o React Native **não possui hover de mouse**, o Agente Antigravity DEVE traduzir todo esse comportamento para **Estados de Pressão (Press/Touch)** utilizando o componente `<Pressable>` ou animações do `react-native-reanimated` (escala e opacidade).
+O aplicativo web possui uma mecânica de feedback visual rigorosa (usando `:hover` e `:active` no CSS e Tailwind). Como o React Web **não possui hover de mouse**, o Agente Antigravity DEVE traduzir todo esse comportamento para **Estados de Pressão (Press/Touch)** utilizando o componente `<Pressable>` ou animações do `framer-motion` (escala e opacidade).
 
 A regra de ouro do aplicativo é: **Nenhum botão é estático. Todos reagem ao toque.**
 
 ### 20.1 Mecânica Global de Escala (Active State)
 - Todos os botões clicáveis do aplicativo web usam a classe `active:scale-95` ou `transform: scale(0.98)` no CSS.
-- **Migração RN:** O Agente deve envolver os botões interativos num `<Pressable>` e aplicar uma transformação de `scale` (encolhimento) de 0.98 ou 0.95 enquanto a propriedade `pressed` for verdadeira.
+- **Botões Web:** O Agente deve estilizar os botões interativos com Tailwind CSS, aplicando `active:scale-95` para transformação de encolhimento de 0.95.
 
 ### 20.2 Comportamento Específico por Componente
 - **Botões de Emergência (Meu Refúgio e SOS Pânico):** 
@@ -5216,7 +5188,7 @@ O Slider de Volume Mestre utiliza imagens estritas como *thumb* (a "bolinha" que
 - **Tema Espaço Sideral:** `rocekt.png` (O foguete).
 - **Tema Dinossauros:** `fossil_rex` (O Fossil do Rex).
 - **Tema Carros (A Exceção Animada):** O cursor de volume NÃO utiliza PNG. É um **carro animado desenhado do zero**.
-  - **Implementação RN:** O Agente Antigravity deve construir este cursor utilizando `react-native-reanimated` e `react-native-gesture-handler`. O carro deve ser montado via `react-native-svg` ou `<View>`s estilizadas. Conforme o usuário arrasta o cursor (PanGesture), o valor `X` deve ser extrapolado (`interpolate`) para aplicar uma animação de rotação (`rotateZ`) nas rodas do carro, simulando o pneu girando proporcionalmente à velocidade do arrasto.
+  - **Implementação Web:** O Agente Antigravity deve construir este cursor utilizando `framer-motion`. O carro deve ser montado via SVG ou `<div>` estilizadas. Conforme o usuário arrasta o cursor (com `onDrag`), o valor `X` deve ser extrapolado para aplicar uma animação de rotação nas rodas do carro, simulando o pneu girando proporcionalmente ao arrasto.
 
 ### 21.2 Imagens dos Cursores de Equalização (Mixer Avançado Infantil)
 *(Nota: O botão de 3 pontinhos sumiu da tela Inicial, mas dentro do **Player Interno Expandido**, a criança possui controles lúdicos de frequência).*
@@ -5240,10 +5212,10 @@ O Agente deve substituir a propriedade `thumbImage` (se suportada pela lib de sl
 
 ## 22. Barra de Navegação Inferior (Bottom Tabs / Navbar)
 
-A barra de navegação principal (BottomNav) não é um componente estático padrão. Ela possui um design de **Glassmorphism flutuante** com inteligência de cores que mapeia ativamente o Modo e Tema atual do usuário. O Agente Antigravity DEVE construir este componente no React Native utilizando custom `TabBar` no `@react-navigation/bottom-tabs` respeitando a fidelidade absoluta dos estilos abaixo.
+A barra de navegação principal (BottomNav) não é um componente estático padrão. Ela possui um design de **Glassmorphism flutuante** com inteligência de cores que mapeia ativamente o Modo e Tema atual do usuário. O Agente Antigravity DEVE construir este componente com `<nav>` e `<button>` HTML, respeitando a fidelidade absoluta dos estilos abaixo.
 
 ### 22.1 Estrutura e Ícones (Lucide)
-O Navbar contém 5 abas representadas estritamente pelos seguintes ícones (importados da biblioteca `lucide-react-native`):
+O Navbar contém 5 abas representadas estritamente pelos seguintes ícones (importados da biblioteca `lucide-react`):
 1. **Início (Home):** Ícone `Home`
 2. **Guardião (Shield):** Ícone `Shield`
 3. **Social (Users):** Ícone `Users`
@@ -5272,4 +5244,4 @@ Ao clicar em uma aba, o ícone aumenta de espessura (de `strokeWidth={1.75}` par
   - Cor do Ícone: Amarelo Sinalização (`#FFE838`). *(Nota: É exatamente este amarelo vívido exibido na aba ativa do "Início").*
   - Glow/Background do Ícone: `bg-[#FFE838]/20`.
 
-**Diretriz Migratória RN:** Para os textos das labels que possuem tamanho `11px` (`text-[11px]`), use a fonte padrão de UI do app (`Inter` ou font do sistema nativo `system-ui`). Para o Glow/Sombra atrás do ícone selecionado, em vez de CSS filter blur, utilize uma `<View>` em posição absoluta atrás do ícone renderizado, pintada com a cor do tema, baixa opacidade, bordas arredondadas e um leve efeito de elevação ou blur nativo para não comprometer a performance.
+**Diretriz Arquitetural Web:** Para os textos das labels que possuem tamanho `11px` (`text-[11px]`), use a fonte padrão de UI do app (`Inter` ou font do sistema nativo `system-ui`). Para o Glow/Sombra atrás do ícone selecionado, em vez de CSS filter blur, utilize uma `<View>` em posição absoluta atrás do ícone renderizado, pintada com a cor do tema, baixa opacidade, bordas arredondadas e um leve efeito de elevação ou blur nativo para não comprometer a performance.
