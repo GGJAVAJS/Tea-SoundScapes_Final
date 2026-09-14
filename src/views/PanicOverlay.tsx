@@ -220,6 +220,7 @@ const SparseClouds = () => {
 const CarsScene = () => {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const sceneGroup = useRef<THREE.Group>(null);
+  const objectsGroup = useRef<THREE.Group>(null);
   
   const [mode, setMode] = useState<1 | 2>(1);
 
@@ -231,11 +232,13 @@ const CarsScene = () => {
   }, []);
 
   useFrame((state, delta) => {
-    if (sceneGroup.current) {
-      sceneGroup.current.position.z += 15 * delta;
-      if (sceneGroup.current.position.z > 50) {
-        sceneGroup.current.position.z = 0;
-      }
+    if (objectsGroup.current) {
+      objectsGroup.current.children.forEach((child) => {
+        child.position.z += 30 * delta;
+        if (child.position.z > 20) {
+          child.position.z -= 220;
+        }
+      });
     }
 
     if (cameraRef.current) {
@@ -314,6 +317,7 @@ const CarsScene = () => {
           <meshBasicMaterial color="#030303" />
         </mesh>
 
+        <group ref={objectsGroup}>
         {/* Skyline: Prédios (Cinza médio com emissive sutil e Edges) */}
         {boxes.map(box => (
           <mesh key={`box-${box.id}`} position={[box.x, box.height / 2, box.z]}>
@@ -349,6 +353,7 @@ const CarsScene = () => {
             </mesh>
           </group>
         ))}
+        </group>
       </group>
 
       <EffectComposer>
