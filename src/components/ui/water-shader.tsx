@@ -11,14 +11,14 @@ uniform vec3  iResolution;
 uniform float iTime;
 uniform vec4  iMouse;
 
-const int NUM_STEPS = 8;
+const int NUM_STEPS = 5;
 const float PI	 	= 3.141592;
 const float EPSILON	= 1e-3;
 #define EPSILON_NRM (0.1 / iResolution.x)
 
 // sea
-const int ITER_GEOMETRY = 3;
-const int ITER_FRAGMENT = 5;
+const int ITER_GEOMETRY = 2;
+const int ITER_FRAGMENT = 3;
 const float SEA_HEIGHT = 0.6;
 const float SEA_CHOPPY = 4.0;
 const float SEA_SPEED = 0.8;
@@ -283,7 +283,7 @@ export default function WaterShader() {
 
     let ro: ResizeObserver | null = null;
     const applySize = () => {
-      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+      const dpr = 0.75;
       const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
       const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
       if (canvas.width !== w || canvas.height !== h) {
@@ -304,7 +304,7 @@ export default function WaterShader() {
       gl.useProgram(program);
       applySize();
 
-      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+      const dpr = 0.75;
       uRes   && gl.uniform3f(uRes, canvas.width, canvas.height, dpr);
       uTime  && gl.uniform1f(uTime, t);
       uMouse && gl.uniform4f(uMouse, mouse.x, mouse.y, mouse.l, mouse.r);
