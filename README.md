@@ -1549,7 +1549,7 @@ A aplicação exige as fontes: `Poppins` e `Playfair Display`.
 ### 5.3 Mídias e Áudios flutuantes
 - As imagens como do **Tema Espaço Sideral:** `planet-big.png`, `planet2.png`, `moon.png`, `meteor.png`, `satellite.png`, `rocekt.png`, `asteroide.png`, `asteroide2.png`, `estrela_cadente.png`, `naveet.png`, `et.png`, icones de humor (`happy-astronaut.png`, `astronaut-calm.png`, `alien_neutral.png`, `alien_sad.png`, `alien_rage.png`), 
 **Tema Dinossauros:** `cloud.png`, `fossil.png`, `fossil_rex.png`, `dino_fofo.png`, `dino_alto.png`, `fantasia_dino.png`, `arvore.png`, `floresta.png`, `palmeiras.png`, os icones de humor (`dinosaur_happy.png`, `dinosaur_smile.png`, `dinosaur_neutral.png`, `dynosaurus_angry.png`, `dinossaur_rage.png`), 
-**Tema Carros:** `race-lights.png`, `speed-meter.png`, `podium-stand.png`, `bandeira_corrida.png`, `carro.png`, `cone.png `, `piloto.png`, `chegada.png`, `cronometro.png`, `helmet.png `, devem ser rigorosamente distribuídas em suas subpastas dentro de `/assets/themes/` (ex: `/assets/themes/space`, `/assets/themes/dinossauro`, `/assets/themes/cars`) e requisitadas no código: `<Image source={ require(\'../assets/themes/space/rocekt.png\') } style={ width: 100, height: 100 } />`.
+**Tema Carros:** `race-lights.png`, `speed-meter.png`, `podium-stand.png`, `bandeira_corrida.png`, `carro.png`, `cone.png `, `piloto.png`, `chegada.png`, `cronometro.png`, `helmet.png `, devem ser rigorosamente distribuídas em suas subpastas absolutas (ex: `/themes/space`, `/themes/dinossauro`, `/themes/cars`) dentro da pasta `public/`. Sendo a `public` a raiz de hospedagem estática, as mídias DEVEM ser requisitadas no código usando a tag HTML padrão com caminho absoluto: `<img src="/themes/space/rocekt.png" className="w-24" />`. É TERMINANTEMENTE PROIBIDO o uso de `require()` ou importações estáticas para estas imagens..
 - Para o **Mixer de Áudios**, utilize o pacote **`HTML5 Audio / Web Audio API`**. Inicialize as instâncias usando a API Web nativa (`new Audio()` ou Web Audio Context).
 
 ### 5.4 Permissões (Hardware)
@@ -1595,19 +1595,20 @@ As cores não apenas definem a estética, mas injetam-se nas caixas de diálogos
 ## 7. Mapeamento Completo de Assets e Ícones
 
 Todo asset estático referenciado no React Web precisará ser movido para a estrutura de pastas exigida pelo Vite (ex: `public/` ou `src/assets/`). A organização DEVE ser estritamente dividida:
-- **Sons e Áudios:** Devem ser colocados em `/assets/sounds/`.
-- **Imagens dos Temas:** Devem ser organizadas dentro de `/assets/themes/`, divididas em subpastas específicas para não haver colisão de nomes.
+- **Sons e Áudios:** Devem ser colocados na raiz da pasta `public` no formato absoluto `/sounds/`. É TERMINANTEMENTE PROIBIDO o uso de `require()` ou importações estáticas para áudios.
+- **Imagens dos Temas:** Devem ser organizadas na raiz da pasta `public` no formato absoluto `/themes/`, divididas em subpastas específicas para não haver colisão de nomes. É TERMINANTEMENTE PROIBIDO o uso de `require()` ou importações estáticas para imagens.
 
 ### 7.1 Imagens Temáticas (.png)
 O App utiliza abundantes imagens 2D (geradas por IA ou vetorizadas) com canal Alpha (`.png`). A estrutura de caminhos é mandatória:
 
-- **Pasta `/assets/themes/space/` (Tema Espaço Sideral):** `planet-big.png`, `planet2.png`, `moon.png`, `meteor.png`, `satellite.png`, `rocekt.png`, `asteroide.png`, `asteroide2.png`, `estrela_cadente.png`, `naveet.png`, `et.png`, icones de humor (`happy-astronaut.png`, `astronaut-calm.png`, `alien_neutral.png`, `alien_sad.png`, `alien_rage.png`).
-- **Pasta `/assets/themes/dinossauro/` (Tema Dinossauros):** `cloud.png`, `fossil.png`, `fossil_rex.png`, `dino_fofo.png`, `dino_alto.png`, `fantasia_dino.png`, `arvore.png`, `floresta.png`, `palmeiras.png`, os icones de humor (`dinosaur_happy.png`, `dinosaur_smile.png`, `dinosaur_neutral.png`, `dynosaurus_angry.png`, `dinossaur_rage.png`).
-- **Pasta `/assets/themes/cars/` (Tema Carros):** `race-lights.png`, `speed-meter.png`, `podium-stand.png`, `bandeira_corrida.png`, `carro.png`, `cone.png `, `piloto.png`, `chegada.png`, `cronometro.png`, `helmet.png `.
+- **Pasta `/themes/space/` (Tema Espaço Sideral):** `planet-big.png`, `planet2.png`, `moon.png`, `meteor.png`, `satellite.png`, `rocekt.png`, `asteroide.png`, `asteroide2.png`, `estrela_cadente.png`, `naveet.png`, `et.png`, icones de humor (`happy-astronaut.png`, `astronaut-calm.png`, `alien_neutral.png`, `alien_sad.png`, `alien_rage.png`).
+- **Pasta `/themes/dinossauro/` (Tema Dinossauros):** `cloud.png`, `fossil.png`, `fossil_rex.png`, `dino_fofo.png`, `dino_alto.png`, `fantasia_dino.png`, `arvore.png`, `floresta.png`, `palmeiras.png`, os icones de humor (`dinosaur_happy.png`, `dinosaur_smile.png`, `dinosaur_neutral.png`, `dynosaurus_angry.png`, `dinossaur_rage.png`).
+- **Pasta `/themes/cars/` (Tema Carros):** `race-lights.png`, `speed-meter.png`, `podium-stand.png`, `bandeira_corrida.png`, `carro.png`, `cone.png `, `piloto.png`, `chegada.png`, `cronometro.png`, `helmet.png `.
 
-> **Comando de Migração de Imagem:** 
-> Web: `<img src="/planet.png" />` ou `style={{ backgroundImage: "url('/et.png')" }}`
-> `<img src="..." className="..." />`
+> **Comando de Utilização de Imagem (Vite PWA):** 
+> As imagens estão na pasta `public/`. O React resolverá os caminhos absolutos a partir da raiz `/`.
+> Padrão correto: `<img src="/themes/space/planet-big.png" className="..." />` ou `style={{ backgroundImage: "url('/themes/space/et.png')" }}`.
+> É terminantemente proibido o uso de `require()`.
 
 ### 7.2 Ícones de Vetor (Lucide)
 O sistema web usa amplamente o pacote `lucide-react`. 
@@ -4980,7 +4981,9 @@ Quando a criança conclui o exercício de respiração (HUD de Carros, Pterodác
 O Termômetro reaproveita as mecânicas de avaliação visual da aba Diário, sendo sobreposto como um *Glass Card* ou Modal imersivo:
 - **Tema Espaço Sideral:** Exibe horizontalmente os 5 níveis de avatares (ex: do `alien_rage.png` ao `happy-astronaut.png`).
 - **Tema Dinossauros:** Exibe os 5 avatares interativos da família T-Rex (ex: do `dinossaur_rage.png` ao `dinosaur_happy.png`).
-- **Tema Carros (A Exceção de Assets):** Sem o uso de avatares PNG. A criança interage com componentes de **UI Nativos de Painel Analógico** (um slider/velocímetro visual ou medidor de temperatura do motor usando `framer-motion`) para apontar o quão calma ela ficou após o exercício.
+- **Tema Carros (Tanque de Gasolina/Bateria):** A Exceção de Assets. Em vez de usar avatares felizes/tristes, o tema Carros utiliza a metáfora de um **Tanque de Gasolina** (ou Bateria do Motor) para medir o humor. 
+  - **Mecânica:** O Agente Antigravity deve construir um Medidor de Combustível usando `framer-motion` (um semicírculo SVG ou slider customizado como painel analógico). 
+  - **Semântica:** O nível "Vazio" ou "Reserva" (Vermelho) representa raiva/cansaço. O nível "Cheio" (Verde brilhante) representa calma/felicidade. A criança arrasta o ponteiro para indicar como o "motor" dela se sente agora.
 
 ### 15.3 Ação Final e Persistência
 Assim que a criança tocar na sua emoção atual:
