@@ -40,6 +40,15 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
     };
   }, []);
 
+  
+  const isChild = themeMode === 'child';
+  const primaryBg = isChild ? 'bg-[#ff5c00]' : 'bg-accent-blue';
+  const primaryBorder = isChild ? 'border-[#ff5c00]' : 'border-accent-blue';
+  const primaryText = isChild ? 'text-[#ff5c00]' : 'text-accent-blue';
+  const primaryShadow = isChild ? 'shadow-[0_0_20px_rgba(255,92,0,0.4)]' : 'shadow-[0_0_20px_rgba(56,189,248,0.4)]';
+  const secondaryShadow = isChild ? 'shadow-[0_0_15px_rgba(255,92,0,0.2)]' : 'shadow-[0_0_15px_rgba(56,189,248,0.2)]';
+  const primaryGlow = isChild ? 'shadow-[0_0_10px_rgba(255,92,0,0.5)]' : 'shadow-[0_0_10px_rgba(56,189,248,0.5)]';
+
   const totalSteps = themeMode === 'child' ? 11 : 8;
   const nextStep = () => {
     setStep(prev => Math.min(prev + 1, totalSteps));
@@ -93,7 +102,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
           </div>
           <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
             <motion.div 
-              className="h-full bg-accent-blue rounded-full shadow-[0_0_10px_rgba(56,189,248,0.5)]"
+              className={`h-full rounded-full ${primaryBg} ${primaryGlow}`}
               initial={{ width: `${((step - 1) / totalSteps) * 100}%` }}
               animate={{ width: `${(step / totalSteps) * 100}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
@@ -107,7 +116,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
           {step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex flex-col gap-6">
               <h1 className="text-3xl font-light text-white leading-tight">
-                Olá! Bem-vindo(a) ao<br/><span className="text-accent-blue font-medium tracking-wide">TEA SoundScapes</span>. 🎧
+                Olá! Bem-vindo(a) ao<br/><span className={`${primaryText} font-medium tracking-wide`}>TEA SoundScapes</span>. 🎧
               </h1>
               <p className="text-gray-300 text-lg">Estamos aqui para criar o seu espaço seguro. Para começar, como você gostaria de ser chamado(a)?</p>
               <input 
@@ -115,12 +124,12 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                 placeholder="Seu nome ou apelido" 
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full glass-card p-4 focus:outline-none focus:border-accent-blue text-white placeholder-gray-500 mt-4 text-lg"
+                className={`w-full glass-card p-4 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} text-white placeholder-gray-500 mt-4 text-lg`}
               />
               <button 
                 onClick={nextStep}
                 disabled={!name.trim()}
-                className="bg-[#f43f5e] text-white font-bold py-4 rounded-full w-full mt-8 shadow-[0_0_20px_rgba(244,63,94,0.4)] disabled:opacity-50 disabled:shadow-none transition-all"
+                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-8 ${primaryShadow} disabled:opacity-50 disabled:shadow-none transition-all`}
               >
                 Começar
               </button>
@@ -136,7 +145,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                 <input 
                   type="email" placeholder="seu@email.com" 
                   value={email} onChange={e => setEmail(e.target.value)}
-                  className="w-full glass-card p-4 focus:outline-none focus:border-accent-blue text-white placeholder-gray-500"
+                  className={`w-full glass-card p-4 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} text-white placeholder-gray-500`}
                 />
                 
                 <div className="flex items-center gap-2 my-2 w-full">
@@ -160,7 +169,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
 
               <button 
                 onClick={nextStep}
-                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-4 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all"
+                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-4 ${primaryShadow} transition-all`}
               >
                 Avançar
               </button>
@@ -195,8 +204,8 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
 
               <button 
                 onClick={nextStep}
-                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-4 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all"
-                style={{ backgroundImage: themeMode === 'child' ? 'linear-gradient(90deg, #ff0000 52%, #ff5c00 84%)' : undefined, boxShadow: themeMode === 'child' ? '0 0 20px rgba(255,92,0,0.4)' : undefined }}
+                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-4 ${primaryShadow} transition-all`}
+                
               >
                 Avançar
               </button>
@@ -222,7 +231,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                       key={loc.id}
                       onClick={() => toggleLocation(loc.id)}
                       className={`p-4 rounded-2xl text-left border transition-all ${
-                        isSelected ? 'bg-accent-blue/20 border-accent-blue text-white shadow-[0_0_15px_rgba(56,189,248,0.2)]' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                        isSelected ? `${isChild ? "bg-[#ff5c00]/20 border-[#ff5c00] text-white shadow-[0_0_15px_rgba(255,92,0,0.2)]" : "bg-accent-blue/20 border-accent-blue text-white shadow-[0_0_15px_rgba(56,189,248,0.2)]"}` : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
                       }`}
                     >
                       <span className="text-lg">{loc.label}</span>
@@ -233,7 +242,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
 
               <button 
                 onClick={nextStep}
-                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-8 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all"
+                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-8 ${primaryShadow} transition-all`}
               >
                 Avançar
               </button>
@@ -249,12 +258,12 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                 <input 
                   type="text" placeholder="Nome da pessoa (Ex: Mãe, João)" 
                   value={supportName} onChange={e => setSupportName(e.target.value)}
-                  className="w-full glass-card p-4 focus:outline-none focus:border-accent-blue text-white placeholder-gray-500"
+                  className={`w-full glass-card p-4 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} text-white placeholder-gray-500`}
                 />
                 <input 
                   type="tel" placeholder="Celular / WhatsApp" 
                   value={supportPhone} onChange={e => setSupportPhone(e.target.value)}
-                  className="w-full glass-card p-4 focus:outline-none focus:border-accent-blue text-white placeholder-gray-500"
+                  className={`w-full glass-card p-4 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} text-white placeholder-gray-500`}
                 />
               </div>
 
@@ -262,7 +271,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                 <span className="text-white text-sm font-medium pr-4">Avisar esta pessoa quando eu estiver em crise</span>
                 <button 
                   onClick={() => setAlertSupport(!alertSupport)} 
-                  className={`w-14 h-8 shrink-0 rounded-full p-1 transition-colors ${alertSupport ? 'bg-accent-blue' : 'bg-gray-600'}`}
+                  className={`w-14 h-8 shrink-0 rounded-full p-1 transition-colors ${alertSupport ? (isChild ? 'bg-[#ff5c00]' : 'bg-accent-blue') : 'bg-gray-600'}`}
                 >
                   <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-all ${alertSupport ? 'ml-6' : 'ml-0'}`} />
                 </button>
@@ -271,14 +280,14 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
               <div className="mt-4">
                 <p className="text-white font-medium mb-3">Você faz acompanhamento com psicólogo(a)?</p>
                 <div className="flex gap-4">
-                  <button onClick={() => setHasTherapist(true)} className={`flex-1 py-3 rounded-xl border transition-all ${hasTherapist === true ? 'bg-accent-blue border-accent-blue text-white' : 'bg-white/5 border-white/10 text-gray-300'}`}>Sim</button>
-                  <button onClick={() => setHasTherapist(false)} className={`flex-1 py-3 rounded-xl border transition-all ${hasTherapist === false ? 'bg-accent-blue border-accent-blue text-white' : 'bg-white/5 border-white/10 text-gray-300'}`}>Não</button>
+                  <button onClick={() => setHasTherapist(true)} className={`flex-1 py-3 rounded-xl border transition-all ${hasTherapist === true ? `${primaryBg} ${primaryBorder} text-white` : 'bg-white/5 border-white/10 text-gray-300'}`}>Sim</button>
+                  <button onClick={() => setHasTherapist(false)} className={`flex-1 py-3 rounded-xl border transition-all ${hasTherapist === false ? `${primaryBg} ${primaryBorder} text-white` : 'bg-white/5 border-white/10 text-gray-300'}`}>Não</button>
                 </div>
               </div>
 
               <button 
                 onClick={nextStep}
-                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-4 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all"
+                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-4 ${primaryShadow} transition-all`}
               >
                 Avançar
               </button>
@@ -287,9 +296,9 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
 
           {step === 6 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex flex-col gap-6 text-center items-center">
-              <div className="w-24 h-24 rounded-full bg-accent-blue/10 flex items-center justify-center border border-accent-blue/30 relative">
-                <Mic className="w-10 h-10 text-accent-blue relative z-10" />
-                <div className="absolute inset-0 bg-accent-blue/20 rounded-full animate-ping opacity-50" />
+              <div className="w-24 h-24 rounded-full ${isChild ? 'bg-[#ff5c00]/10 border-[#ff5c00]/30' : 'bg-accent-blue/10 border-accent-blue/30'} flex items-center justify-center border relative">
+                <Mic className={`w-10 h-10 ${primaryText} relative z-10`} />
+                <div className="absolute inset-0 ${isChild ? 'bg-[#ff5c00]/20' : 'bg-accent-blue/20'} rounded-full animate-ping opacity-50" />
               </div>
               <h1 className="text-3xl font-light text-white leading-tight">Conheça o seu Guardião Automático 🛡️</h1>
               <p className="text-gray-300 text-lg">Nosso sistema pode escutar o ambiente e te proteger de barulhos muito altos antes mesmo de eles te incomodarem.</p>
@@ -311,7 +320,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                     nextStep();
                   }
                 }}
-                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-8 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all"
+                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-8 ${primaryShadow} transition-all`}
               >
                 Permitir uso do Microfone
               </button>
@@ -340,7 +349,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                       key={sound.id}
                       onClick={() => setRefugeSound(sound.id)}
                       className={`p-4 rounded-2xl flex items-center gap-4 transition-all cursor-pointer border ${
-                        isSelected ? 'bg-accent-blue/20 border-accent-blue shadow-[0_0_15px_rgba(56,189,248,0.2)]' : 'bg-white/5 border-white/10 hover:bg-white/10'
+                        isSelected ? `${isChild ? "bg-[#ff5c00]/20 border-[#ff5c00] shadow-[0_0_15px_rgba(255,92,0,0.2)]" : "bg-accent-blue/20 border-accent-blue shadow-[0_0_15px_rgba(56,189,248,0.2)]"}` : "bg-white/5 border-white/10 hover:bg-white/10"
                       }`}
                     >
                       <button 
@@ -360,13 +369,13 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                           }
                         }}
                         className={`w-12 h-12 shrink-0 rounded-full border flex items-center justify-center transition-colors ${
-                           isPlaying ? 'bg-accent-blue text-white border-accent-blue' : 'bg-white/10 border-white/20 text-white'
+                           isPlaying ? `${primaryBg} text-white ${primaryBorder}` : "bg-white/10 border-white/20 text-white"
                         }`}
                       >
                          {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 ml-1 fill-current" />}
                       </button>
                       <span className="text-sm font-medium text-white">{sound.label}</span>
-                      {isSelected && <Check className="w-5 h-5 text-accent-blue ml-auto shrink-0" strokeWidth={3} />}
+                      {isSelected && <Check className={`w-5 h-5 ${primaryText} ml-auto shrink-0`} strokeWidth={3} />}
                     </div>
                   );
                 })}
@@ -377,7 +386,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
               <button 
                 onClick={nextStep}
                 disabled={!refugeSound}
-                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-4 shadow-[0_0_20px_rgba(56,189,248,0.4)] disabled:opacity-50 disabled:shadow-none transition-all"
+                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-4 ${primaryShadow} disabled:opacity-50 disabled:shadow-none transition-all`}
               >
                 Salvar Meu Refúgio
               </button>
@@ -429,7 +438,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
               </div>
               <button 
                 onClick={nextStep}
-                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-4 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all text-lg"
+                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-4 ${primaryShadow} transition-all text-lg`}
               >
                 Avançar
               </button>
@@ -471,7 +480,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                   }
                   nextStep();
                 }}
-                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-4 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all text-lg"
+                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-4 ${primaryShadow} transition-all text-lg`}
               >
                 Salvar Senha
               </button>
