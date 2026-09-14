@@ -56,7 +56,7 @@ float raymarchTerrain( in vec3 ro, in vec3 rd )
 	float precis = 0.001;
     float h = 1.0;
     float t = 0.0;
-    for( int i=0; i<80; i++ )
+    for( int i=0; i<40; i++ )
     {
         if( abs(h)<precis||t>maxd ) break;
         t += h;
@@ -132,7 +132,7 @@ vec4 raymarchTrees( in vec3 ro, in vec3 rd, float tmax, vec3 bgcol, out float re
 {
 	vec4 sum = vec4(0.0);
     float t = tmax;
-	for( int i=0; i<512; i++ )
+	for( int i=0; i<120; i++ )
 	{
 		vec3 pos = ro + t*rd;
 		if( sum.a>0.99 || pos.y<0.0  || t>20.0 ) break;
@@ -145,7 +145,7 @@ vec4 raymarchTrees( in vec3 ro, in vec3 rd, float tmax, vec3 bgcol, out float re
 
 		sum = sum + col*(1.0 - sum.a);	
 		
-		t += 0.0035*t;
+		t += 0.012*t;
 	}
     
     resT = t;
@@ -176,13 +176,13 @@ vec4 raymarchClouds( in vec3 ro, in vec3 rd, in vec3 bcol, float tmax, out float
     
 	float sun = clamp( dot(rd,lig), 0.0, 1.0 );
 	float t = 0.1*texelFetch( iChannel0, px&ivec2(255), 0 ).x;
-	for(int i=0; i<64; i++)
+	for(int i=0; i<32; i++)
 	{
 		if( sum.w>0.99 || t>tmax ) break;
 		vec3 pos = ro + t*rd;
 		vec4 col = mapClouds( pos );
 
-		float dt = max(0.1,0.05*t);
+		float dt = max(0.2,0.1*t);
 		float h = (2.8-pos.y)/lig.y;
 		float c = fbm( (pos + lig*h)*0.35 );
 		//kk += 0.05*dt*(smoothstep( 0.38, 0.6, c ))*(1.0-col.a);
@@ -455,7 +455,7 @@ export default function NatureLandscapeShader() {
 
     let ro: ResizeObserver | null = null;
     const applySize = () => {
-      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+      const dpr = 0.75;
       const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
       const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
       if (canvas.width !== w || canvas.height !== h) {
@@ -476,7 +476,7 @@ export default function NatureLandscapeShader() {
       gl.useProgram(program);
       applySize();
 
-      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+      const dpr = 0.75;
       uRes   && gl.uniform3f(uRes, canvas.width, canvas.height, dpr);
       uTime  && gl.uniform1f(uTime, t);
       uFrame && gl.uniform1i(uFrame, frame);

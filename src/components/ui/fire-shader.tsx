@@ -64,7 +64,7 @@ float castRayx(vec3 ro,vec3 rd)
     float precis=.0001;
     float h=precis*2.;
     float t=0.;
-	for(int i=0;i<120;i++) 
+	for(int i=0;i<60;i++) 
 	{
         if(abs(h)<precis||t>12.)break;
 		h=function_sign*map(ro+rd*t);
@@ -79,7 +79,7 @@ float refr(vec3 pos,vec3 lig,vec3 dir,vec3 nor,float angle,out float t2, out vec
     float h=0.;
     t2=2.;
 	vec3 dir2=refract(dir,nor,angle);  
- 	for(int i=0;i<50;i++) 
+ 	for(int i=0;i<20;i++) 
 	{
 		if(abs(h)>3.) break;
 		h=map(pos+dir2*t2);
@@ -95,7 +95,7 @@ float softshadow(vec3 ro,vec3 rd)
     float sh=1.;
     float t=.02;
     float h=.0;
-    for(int i=0;i<22;i++)  
+    for(int i=0;i<12;i++)  
 	{
         if(t>20.)continue;
         h=map(ro+rd*t);
@@ -148,17 +148,17 @@ void mainImage(out vec4 fragColor,in vec2 fragCoord)
 
 //	animation of glow intensity    
     float intensity = 0.1*-sin(.209*time+1.)+0.05; 
-	for(int i=0; i<128; i++)
+	for(int i=0; i<48; i++)
 	{
         float density = 0.; float nebula = noise(org+bounce);
         density=intensity-map(org+.5*nor2)*nebula;
 		if(density>0.)
 		{
-			tmp = density / 128.;
+			tmp = density / 48.;
             T *= 1. -tmp * 100.;
 			if( T <= 0.) break;
 		}
-		org += dir*0.078;
+		org += dir*0.15;
     }    
 	vec3 basecol=vec3(1./1. ,  1./4. , 1./16.);
     T=clamp(T,0.,1.5); 
@@ -250,7 +250,7 @@ export default function FireShader() {
 
     let ro: ResizeObserver | null = null;
     const applySize = () => {
-      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+      const dpr = 0.75;
       const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
       const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
       if (canvas.width !== w || canvas.height !== h) {
@@ -271,7 +271,7 @@ export default function FireShader() {
       gl.useProgram(program);
       applySize();
 
-      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+      const dpr = 0.75;
       uRes   && gl.uniform3f(uRes, canvas.width, canvas.height, dpr);
       uTime  && gl.uniform1f(uTime, t);
 

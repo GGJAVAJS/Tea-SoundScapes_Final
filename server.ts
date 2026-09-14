@@ -99,7 +99,6 @@ Analise os dados: ${JSON.stringify(payload)}`;
           return { text: "Não foi possível gerar a análise automatizada neste momento." };
         })
       ]);
-
       res.json({
         userInsight: resUser.text,
         therapistSummary: resPsych.text

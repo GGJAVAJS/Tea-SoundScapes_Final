@@ -5,6 +5,7 @@ import jsPDF from 'jspdf';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { Check, Download, Lightbulb, ChevronDown, Share2, Trash2, FileText, Filter } from 'lucide-react';
 import { saveReport, getReportsByUser, deleteReport, Report } from '../lib/reportDB';
+import { CarsFuelTank } from '../components/CarsFuelTank';
 
 const MOODS = [
   { id: 'great', emoji: '😇', label: 'Ótimo', min: 0, max: 20 },
@@ -79,7 +80,9 @@ const AstronautMood = ({ mood, kidsTheme }: { mood: string; kidsTheme?: string }
       else imgSrc = '/themes/space/alien_rage.png';
       break;
     default:
-      imgSrc = '/themes/space/alien_neutral.png';
+      if (themeName === 'dinossauro') imgSrc = '/themes/dinossauro/dinosaur_neutral.png';
+      else if (themeName === 'cars') imgSrc = '/themes/cars/cronometro.png';
+      else imgSrc = '/themes/space/alien_neutral.png';
   }
   return <img src={imgSrc} alt={mood} className="w-[2em] h-[2em] object-contain drop-shadow-md scale-125" />;
 };
@@ -256,13 +259,14 @@ export function DiaryView({ startView = 'registro', themeMode, kidsTheme, isChil
     .map(t => ({ label: t, count: triggerCounts[t], p: Math.round((triggerCounts[t] / maxTrigger) * 100) }));
 
   // Computed days for relations
-  const daysMap: Record<string, { date: number, crises: number, emojis: string[], moodIds: string[], dateStr: string }> = {};
+  const daysMap: Record<string, { date: number, crises: number, emojis: string[], moodIds: string[], intensities: number[], dateStr: string }> = {};
   records.forEach(r => {
     const dStr = new Date(r.date).toLocaleDateString('pt-BR');
-    if (!daysMap[dStr]) daysMap[dStr] = { date: r.date, crises: 0, emojis: [], moodIds: [], dateStr: dStr };
+    if (!daysMap[dStr]) daysMap[dStr] = { date: r.date, crises: 0, emojis: [], moodIds: [], intensities: [], dateStr: dStr };
     if (r.intensity >= 60) daysMap[dStr].crises++;
     daysMap[dStr].emojis.push(MOODS.find(m => m.id === r.moodId)?.emoji || '😐');
     daysMap[dStr].moodIds.push(r.moodId);
+    daysMap[dStr].intensities.push(r.intensity);
   });
   const diasComCrises = Object.values(daysMap).filter(d => d.crises > 0).sort((a,b) => b.date - a.date).slice(0, 3);
   const diasSemCrises = Object.values(daysMap).filter(d => d.crises === 0).sort((a,b) => b.date - a.date).slice(0, 3);
@@ -272,13 +276,15 @@ export function DiaryView({ startView = 'registro', themeMode, kidsTheme, isChil
 
   const avgMoodId = recentRecords.length === 0 ? null : (MOODS.find(m => avgIntensity >= m.min && avgIntensity <= m.max)?.id);
   const stats = { mood: moodEmoji, crises: totalCrises, goodDays, trend, moodId: avgMoodId };
+  const effectiveKidsTheme = kidsTheme || (typeof window !== 'undefined' ? localStorage.getItem('kidsTheme') : null);
   const isDinoTheme = themeMode === 'child' && kidsTheme === 'dino';
   const isSpaceTheme = themeMode === 'child' && kidsTheme === 'space';
   const isCarsTheme = themeMode === 'child' && kidsTheme === 'cars';
+  const showCarsThemeGauge = effectiveKidsTheme === 'cars';
 
   return (
     <>
-      {(themeMode !== 'child' || kidsTheme === 'cars' ) && (
+      {themeMode === 'child' && kidsTheme === 'cars' && (
         <div 
           className="fixed inset-0 z-0 pointer-events-none" 
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.93)' }}
@@ -364,60 +370,66 @@ function RegistroView({ onSave, isDinoTheme, isSpaceTheme, isCarsTheme, isChildA
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-8">
       {/* Mood */}
       <div>
-        <h2 className="text-xl text-[#e5e7eb] mb-6">Como você está agora?</h2>
-        <div className="flex justify-between items-center px-2">
-            {MOODS.map(mood => (
-            <button 
-              key={mood.id}
-              onClick={() => handleMoodClick(mood.id)}
-              className={`transition-all ${(isDinoTheme || isCarsTheme) ? 'w-12 h-12 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center' : 'text-4xl'} ${selectedMood === mood.id ? 'scale-125' : 'scale-100 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 hover:scale-110'}`}
-            >
-              {selectedMood === mood.id ? (
-                <div className="relative">
-                  <div className={`absolute inset-0 rounded-full blur-md scale-150 ${isCarsTheme ? 'bg-[rgba(255,232,56,0.88)]' : isSpaceTheme ? 'bg-[rgba(96,46,201,0.4)]' : isDinoTheme ? 'bg-[rgba(128,243,86,0.4)]' : 'bg-[rgba(56,189,248,0.4)]'}`} />
-                  <span className={`relative z-10 flex items-center justify-center rounded-full border-2 p-1 ${(isDinoTheme || isCarsTheme) ? 'w-12 h-12 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center' : 'w-12 h-12'} ${isCarsTheme ? 'border-[rgba(255,232,56,0.88)] shadow-[0_0_15px_rgba(255,232,56,0.79)]' : isSpaceTheme ? 'border-[rgba(96,46,201,0.79)] shadow-[0_0_15px_rgba(56,189,248,0.79)]' : isDinoTheme ? 'border-[rgba(128,243,86,0.79)] shadow-[0_0_15px_rgba(128,243,86,0.79)]' : 'border-[rgba(56,189,248,0.79)] shadow-[0_0_15px_rgba(56,189,248,0.5)]'}`}>
+        <h2 className="text-xl text-[#e5e7eb] mb-6">{isCarsTheme ? 'Como está o seu motor agora?' : 'Como você está agora?'}</h2>
+        {isCarsTheme ? (
+          <CarsFuelTank intensity={intensity} setIntensity={setIntensity} />
+        ) : (
+          <>
+            <div className="flex justify-between items-center px-2">
+              {MOODS.map(mood => (
+              <button 
+                key={mood.id}
+                onClick={() => handleMoodClick(mood.id)}
+                className={`transition-all ${(isDinoTheme || isCarsTheme) ? 'w-12 h-12 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center' : 'text-4xl'} ${selectedMood === mood.id ? 'scale-125' : 'scale-100 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 hover:scale-110'}`}
+              >
+                {selectedMood === mood.id ? (
+                  <div className="relative">
+                    <div className={`absolute inset-0 rounded-full blur-md scale-150 ${isCarsTheme ? 'bg-[rgba(255,232,56,0.88)]' : isSpaceTheme ? 'bg-[rgba(96,46,201,0.4)]' : isDinoTheme ? 'bg-[rgba(128,243,86,0.4)]' : 'bg-[rgba(56,189,248,0.4)]'}`} />
+                    <span className={`relative z-10 flex items-center justify-center rounded-full border-2 p-1 ${(isDinoTheme || isCarsTheme) ? 'w-12 h-12 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center' : 'w-12 h-12'} ${isCarsTheme ? 'border-[rgba(255,232,56,0.88)] shadow-[0_0_15px_rgba(255,232,56,0.79)]' : isSpaceTheme ? 'border-[rgba(96,46,201,0.79)] shadow-[0_0_15px_rgba(56,189,248,0.79)]' : isDinoTheme ? 'border-[rgba(128,243,86,0.79)] shadow-[0_0_15px_rgba(128,243,86,0.79)]' : 'border-[rgba(56,189,248,0.79)] shadow-[0_0_15px_rgba(56,189,248,0.5)]'}`}>
+                      {isSpaceTheme ? (
+                        <AstronautMood mood={mood.id} />
+                      ) : isDinoTheme ? (
+                        <img src={mood.id === 'great' ? '/themes/dinossauro/dinosaur_happy.png' : mood.id === 'good' ? '/themes/dinossauro/dinosaur_smile.png' : mood.id === 'neutral' ? '/themes/dinossauro/dinosaur_neutral.png' : mood.id === 'bad' ? '/themes/dinossauro/dynosaurus_angry.png' : '/themes/dinossauro/dinossaur_rage.png'} alt={mood.label} className="w-10 h-10 sm:w-14 sm:h-14 object-contain drop-shadow-md shrink-0" />
+                      ) : isCarsTheme ? (
+                        <FuelTankMood mood={mood.id} />
+                      ) : (
+                        mood.emoji
+                      )}
+                    </span>
+                  </div>
+                ) : (
+                  <span className={`flex items-center justify-center p-1 rounded-full hover:border transition-all ${(isDinoTheme || isCarsTheme) ? 'w-12 h-12 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center' : 'w-12 h-12'} ${isCarsTheme ? 'text-[rgba(255,232,56,0.88)]' : isSpaceTheme ? 'hover:border-[rgba(96,46,201,0.79)] hover:shadow-[0_0_10px_rgba(56,189,248,0.6)]' : isDinoTheme ? 'hover:border-[rgba(128,243,86,0.79)] hover:shadow-[0_0_10px_rgba(128,243,86,0.6)]' : 'hover:border-[rgba(56,189,248,0.79)] hover:shadow-[0_0_10px_rgba(56,189,248,0.5)]'}`}>
                     {isSpaceTheme ? (
                       <AstronautMood mood={mood.id} />
                     ) : isDinoTheme ? (
-                      <img src={mood.id === 'great' ? '/themes/dinossauro/dinosaur_happy.png' : mood.id === 'good' ? '/themes/dinossauro/dinosaur_smile.png' : mood.id === 'neutral' ? '/themes/dinossauro/dinosaur_neutral.png' : mood.id === 'bad' ? '/themes/dinossauro/dynosaurus_angry.png' : '/themes/dinossauro/dinossaur_rage.png'} alt={mood.label} className="w-10 h-10 sm:w-14 sm:h-14 object-contain drop-shadow-md shrink-0" />
-                    ) : isCarsTheme ? (
-                      <FuelTankMood mood={mood.id} />
-                    ) : (
-                      mood.emoji
-                    )}
+                        <img src={mood.id === 'great' ? '/themes/dinossauro/dinosaur_happy.png' : mood.id === 'good' ? '/themes/dinossauro/dinosaur_smile.png' : mood.id === 'neutral' ? '/themes/dinossauro/dinosaur_neutral.png' : mood.id === 'bad' ? '/themes/dinossauro/dynosaurus_angry.png' : '/themes/dinossauro/dinossaur_rage.png'} alt={mood.label} className="w-10 h-10 sm:w-14 sm:h-14 object-contain drop-shadow-md shrink-0" />
+                      ) : isCarsTheme ? (
+                        <FuelTankMood mood={mood.id} />
+                      ) : (
+                        mood.emoji
+                      )}
                   </span>
-                </div>
-              ) : (
-                <span className={`flex items-center justify-center p-1 rounded-full hover:border transition-all ${(isDinoTheme || isCarsTheme) ? 'w-12 h-12 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center' : 'w-12 h-12'} ${isCarsTheme ? 'text-[rgba(255,232,56,0.88)]' : isSpaceTheme ? 'hover:border-[rgba(96,46,201,0.79)] hover:shadow-[0_0_10px_rgba(56,189,248,0.6)]' : isDinoTheme ? 'hover:border-[rgba(128,243,86,0.79)] hover:shadow-[0_0_10px_rgba(128,243,86,0.6)]' : 'hover:border-[rgba(56,189,248,0.79)] hover:shadow-[0_0_10px_rgba(56,189,248,0.5)]'}`}>
-                  {isSpaceTheme ? (
-                    <AstronautMood mood={mood.id} />
-                  ) : isDinoTheme ? (
-                      <img src={mood.id === 'great' ? '/themes/dinossauro/dinosaur_happy.png' : mood.id === 'good' ? '/themes/dinossauro/dinosaur_smile.png' : mood.id === 'neutral' ? '/themes/dinossauro/dinosaur_neutral.png' : mood.id === 'bad' ? '/themes/dinossauro/dynosaurus_angry.png' : '/themes/dinossauro/dinossaur_rage.png'} alt={mood.label} className="w-10 h-10 sm:w-14 sm:h-14 object-contain drop-shadow-md shrink-0" />
-                    ) : isCarsTheme ? (
-                      <FuelTankMood mood={mood.id} />
-                    ) : (
-                      mood.emoji
-                    )}
-                </span>
-              )}
-            </button>
-            ))}
-          </div>
-      </div>
-      
-      {/* Intensity Slider */}
-      <div className="mt-4">
-        <input 
-          type="range" 
-          min="0" max="100" 
-          value={intensity}
-          onChange={(e) => setIntensity(Number(e.target.value))}
-          className={`w-full h-3 bg-[rgba(255,255,255,0.1)] rounded-lg appearance-none cursor-pointer transition-colors ${isCarsTheme ? 'accent-[#FFE838]/[.88] hover:border hover:border-[rgba(255,232,56,0.88)]/79' : isSpaceTheme ? 'accent-[#602EC9] hover:border hover:border-[rgba(96,46,201,0.79)]' : isDinoTheme ? 'accent-[#80F356] hover:border hover:border-[rgba(128,243,86,0.79)]' : 'accent-accent-blue hover:border hover:border-[rgba(56,189,248,0.79)]'}`}
-        />
-        <div className="flex justify-between text-xs text-[#9ca3af] mt-3">
-          <span className={`transition-colors cursor-pointer ${isCarsTheme ? 'text-[rgba(255,232,56,0.88)]' : isSpaceTheme ? 'hover:text-[rgba(96,46,201,0.79)]' : isDinoTheme ? 'hover:text-[rgba(128,243,86,0.79)]' : 'hover:text-[rgba(56,189,248,0.79)]'}`} onClick={() => setIntensity(0)}>Calmo</span>
-          <span className={`transition-colors cursor-pointer ${isCarsTheme ? 'text-[rgba(255,232,56,0.88)]' : isSpaceTheme ? 'hover:text-[rgba(96,46,201,0.79)]' : isDinoTheme ? 'hover:text-[rgba(128,243,86,0.79)]' : 'hover:text-[rgba(56,189,248,0.79)]'}`} onClick={() => setIntensity(100)}>Estressado</span>
-        </div>
+                )}
+              </button>
+              ))}
+            </div>
+            
+            {/* Intensity Slider */}
+            <div className="mt-4">
+              <input 
+                type="range" 
+                min="0" max="100" 
+                value={intensity}
+                onChange={(e) => setIntensity(Number(e.target.value))}
+                className={`w-full h-3 bg-[rgba(255,255,255,0.1)] rounded-lg appearance-none cursor-pointer transition-colors ${isSpaceTheme ? 'accent-[#602EC9] hover:border hover:border-[rgba(96,46,201,0.79)]' : isDinoTheme ? 'accent-[#80F356] hover:border hover:border-[rgba(128,243,86,0.79)]' : 'accent-accent-blue hover:border hover:border-[rgba(56,189,248,0.79)]'}`}
+              />
+              <div className="flex justify-between text-xs text-[#9ca3af] mt-3">
+                <span className={`transition-colors cursor-pointer ${isSpaceTheme ? 'hover:text-[rgba(96,46,201,0.79)]' : isDinoTheme ? 'hover:text-[rgba(128,243,86,0.79)]' : 'hover:text-[rgba(56,189,248,0.79)]'}`} onClick={() => setIntensity(0)}>Calmo</span>
+                <span className={`transition-colors cursor-pointer ${isSpaceTheme ? 'hover:text-[rgba(96,46,201,0.79)]' : isDinoTheme ? 'hover:text-[rgba(128,243,86,0.79)]' : 'hover:text-[rgba(56,189,248,0.79)]'}`} onClick={() => setIntensity(100)}>Estressado</span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {!isChildAutonomyMode && (
@@ -494,8 +506,9 @@ function PrintableClinicalReport({
   stats, chartData, topStrategies = [], heatmapData, topTriggers = [],
   diasComCrises, diasSemCrises, timelineRecords, aiInsights 
 }: any) {
-  
   const dateStr = new Date().toLocaleDateString('pt-BR');
+  const effectiveKidsTheme = isCarsTheme ? 'cars' : isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : null;
+  const showCarsThemeGauge = isCarsTheme;
   
   return (
     <div className="flex flex-col gap-6 p-10 w-[800px] bg-[#090e17] text-[#e5e7eb] font-sans" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
@@ -684,7 +697,11 @@ function PrintableClinicalReport({
                       <div key={i} className="flex justify-between items-center text-xs">
                         <span className="text-[#e5e7eb]">{new Date(d.date).toLocaleDateString('pt-BR')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{themeMode === 'child' && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : undefined} /> : d.emojis.slice(-1)[0]}</span>
+                          {showCarsThemeGauge ? (
+                            <div className="w-32"><CarsFuelTank intensity={d.intensities?.slice(-1)[0] ?? 50} readOnly={true} /></div>
+                          ) : (
+                            <span className="text-sm">{(themeMode === 'child' || true) && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={effectiveKidsTheme || undefined} /> : d.emojis.slice(-1)[0]}</span>
+                          )}
                           <span className="text-white bg-[#f43f5e] px-2 py-0.5 rounded font-medium">{d.crises} crise(s)</span>
                         </div>
                       </div>
@@ -703,7 +720,11 @@ function PrintableClinicalReport({
                       <div key={i} className="flex justify-between items-center text-xs">
                         <span className="text-center text-[#9ca3af]">{new Date(d.date).toLocaleDateString('pt-BR')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{themeMode === 'child' && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : undefined} /> : d.emojis.slice(-1)[0]}</span>
+                          {showCarsThemeGauge ? (
+                            <div className="w-32"><CarsFuelTank intensity={d.intensities?.slice(-1)[0] ?? 50} readOnly={true} /></div>
+                          ) : (
+                            <span className="text-sm">{(themeMode === 'child' || true) && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={effectiveKidsTheme || undefined} /> : d.emojis.slice(-1)[0]}</span>
+                          )}
                           <span className="text-[#4ade80] bg-[rgba(34,197,94,0.1)] px-2 py-0.5 rounded font-medium">✓ Sem crises</span>
                         </div>
                       </div>
@@ -1101,7 +1122,11 @@ function AnalisesView({ isDinoTheme, isSpaceTheme, isCarsTheme, themeMode,
                       <div key={i} className="flex justify-between items-center text-xs">
                         <span className="text-[#e5e7eb]">{new Date(d.date).toLocaleDateString('pt-BR')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{(isSpaceTheme || isDinoTheme || isCarsTheme) && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : undefined} /> : d.emojis.slice(-1)[0]}</span>
+                          {isCarsTheme ? (
+                            <div className="w-32"><CarsFuelTank intensity={d.intensities?.slice(-1)[0] ?? 50} readOnly={true} /></div>
+                          ) : (
+                            <span className="text-sm">{(isSpaceTheme || isDinoTheme) && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : undefined} /> : d.emojis.slice(-1)[0]}</span>
+                          )}
                           <span className="text-white bg-danger-panic px-2 py-0.5 rounded font-medium">{d.crises} crise(s)</span>
                         </div>
                       </div>
@@ -1244,71 +1269,7 @@ function AnalisesView({ isDinoTheme, isSpaceTheme, isCarsTheme, themeMode,
   );
 }
 
-function CarsFuelTank({ intensity, setIntensity }: { intensity: number, setIntensity: (val: number) => void }) {
-  const fuelLevel = 100 - intensity;
 
-  let fuelColor = '';
-  let fuelText = '';
-  let fuelGlow = '';
-  let textColor = '';
-
-  if (fuelLevel >= 70) {
-    fuelColor = 'bg-[#10b981]';
-    fuelGlow = 'shadow-[0_0_20px_rgba(16,185,129,0.5)]';
-    fuelText = 'Tanque Cheio - Pronto para rodar!';
-    textColor = 'text-[#34d399]';
-  } else if (fuelLevel >= 30) {
-    fuelColor = 'bg-[#fbbf24]';
-    fuelGlow = 'shadow-[0_0_20px_rgba(251,191,36,0.5)]';
-    fuelText = 'Meio Tanque - Ritmo tranquilo';
-    textColor = 'text-[#fbbf24]';
-  } else {
-    fuelColor = 'bg-[#ef4444]';
-    fuelGlow = 'shadow-[0_0_20px_rgba(239,68,68,0.5)]';
-    fuelText = 'Na Reserva - Hora de parar no box para descansar';
-    textColor = 'text-[#f87171]';
-  }
-
-  return (
-    <div className="flex flex-col items-center w-full px-2">
-      <div className="w-full relative">
-        <div className="relative w-full h-16 bg-[#0a0a0a]/80 backdrop-blur-md rounded-2xl border-2 border-[rgba(255,255,255,0.1)] overflow-hidden flex items-center p-1 shadow-inner">
-          <div 
-            className={`h-full rounded-xl transition-all duration-500 ease-out ${fuelColor} ${fuelGlow}`}
-            style={{ width: `${Math.max(fuelLevel, 5)}%` }}
-          >
-            <div className="w-full h-full opacity-20 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px]" />
-          </div>
-          
-          <div className="absolute inset-0 flex justify-between items-center px-6 pointer-events-none">
-            <span className="font-bold text-[#9ca3af]/80 text-xl font-mono">E</span>
-            <div className="flex gap-4">
-               <div className="w-0.5 h-4 bg-[#6b7280]/50 rounded-full" />
-               <div className="w-0.5 h-6 bg-[#6b7280]/50 rounded-full" />
-               <div className="w-0.5 h-4 bg-[#6b7280]/50 rounded-full" />
-            </div>
-            <span className="font-bold text-[#9ca3af]/80 text-xl font-mono">F</span>
-          </div>
-        </div>
-
-        <input 
-          type="range"
-          min="0"
-          max="100"
-          value={fuelLevel}
-          onChange={(e) => setIntensity(100 - Number(e.target.value))}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-        />
-      </div>
-
-      <div className="mt-6 text-center bg-[rgba(0,0,0,0.4)] px-4 py-2 rounded-xl border border-[rgba(255,255,255,0.05)] backdrop-blur-sm">
-        <span className={`text-sm md:text-base font-bold transition-colors duration-300 tracking-wide ${textColor}`}>
-          {fuelText}
-        </span>
-      </div>
-    </div>
-  );
-}
 
 
 
