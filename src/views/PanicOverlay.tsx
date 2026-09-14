@@ -549,6 +549,7 @@ export function PanicOverlay({ isOpen, onClose, themeMode, kidsTheme, isSmsSent 
     <AnimatePresence>
       {isOpen && (
         <motion.div 
+          key="panic-overlay-container"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

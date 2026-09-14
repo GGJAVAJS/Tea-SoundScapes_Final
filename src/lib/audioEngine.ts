@@ -536,7 +536,9 @@ export function stopSound(type: SoundType) {
     setTimeout(() => {
       try {
         if (node.audioElement) {
-          node.audioElement.pause();
+          if (activeNodes[type]?.audioElement !== node.audioElement) {
+            node.audioElement.pause();
+          }
         } else if (node.source) {
           node.source.stop();
           node.source.disconnect();
