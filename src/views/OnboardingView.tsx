@@ -423,16 +423,16 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
 
           {step === 8 && themeMode === 'child' && (
             <motion.div key="stepAutonomy" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col text-center items-center justify-center h-full gap-6">
-              <h1 className="text-3xl font-bold text-accent-blue leading-tight">Filtro de Autonomia</h1>
+              <h1 className={`text-3xl font-bold ${primaryText} leading-tight`}>Filtro de Autonomia</h1>
               <p className="text-gray-300 text-lg">A criança fará o registro de suas próprias emoções após o uso do Som Refúgio?</p>
               
               <div className="flex flex-col gap-4 w-full mt-4">
-                <button onClick={() => setChildAutonomyFilter(true)} className={`p-6 rounded-2xl border transition-all text-left flex flex-col gap-1 ${childAutonomyFilter ? 'bg-accent-blue/20 border-accent-blue shadow-[0_0_20px_rgba(56,189,248,0.4)]' : 'bg-white/5 border-white/10 grayscale hover:grayscale-0'}`}>
-                  <span className={`font-bold ${childAutonomyFilter ? 'text-accent-blue' : 'text-white'}`}>Ligado (Sim)</span>
+                <button onClick={() => setChildAutonomyFilter(true)} className={`p-6 rounded-2xl border transition-all text-left flex flex-col gap-1 ${childAutonomyFilter ? `${isChild ? "bg-[#ff5c00]/20 border-[#ff5c00]" : "bg-accent-blue/20 border-accent-blue"} ${primaryShadow}` : "bg-white/5 border-white/10 grayscale hover:grayscale-0"}`}>
+                  <span className={`font-bold ${childAutonomyFilter ? primaryText : "text-white"}`}>Ligado (Sim)</span>
                   <span className="text-sm text-gray-400">Após a utilização do SOS Pânico, a criança vê o termômetro lúdico dos temas para apontar como se sente. A tela de avaliação só aparecerá após a utilização do SOS Pânico.</span>
                 </button>
-                <button onClick={() => setChildAutonomyFilter(false)} className={`p-6 rounded-2xl border transition-all text-left flex flex-col gap-1 ${!childAutonomyFilter ? 'bg-accent-blue/20 border-accent-blue shadow-[0_0_20px_rgba(56,189,248,0.4)]' : 'bg-white/5 border-white/10 grayscale hover:grayscale-0'}`}>
-                  <span className={`font-bold ${!childAutonomyFilter ? 'text-accent-blue' : 'text-white'}`}>Desligado (Não)</span>
+                <button onClick={() => setChildAutonomyFilter(false)} className={`p-6 rounded-2xl border transition-all text-left flex flex-col gap-1 ${!childAutonomyFilter ? `${isChild ? "bg-[#ff5c00]/20 border-[#ff5c00]" : "bg-accent-blue/20 border-accent-blue"} ${primaryShadow}` : "bg-white/5 border-white/10 grayscale hover:grayscale-0"}`}>
+                  <span className={`font-bold ${!childAutonomyFilter ? primaryText : "text-white"}`}>Desligado (Não)</span>
                   <span className="text-sm text-gray-400">O app pula essa etapa. O registro aguarda silenciosamente no painel dos pais.</span>
                 </button>
               </div>
@@ -446,7 +446,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
           )}
           {step === 10 && themeMode === 'child' && (
             <motion.div key="stepPin" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col text-center items-center justify-center h-full gap-6">
-              <h1 className="text-3xl font-bold text-accent-blue leading-tight">Proteger o Diário 🔒</h1>
+              <h1 className={`text-3xl font-bold ${primaryText} leading-tight`}>Proteger o Diário 🔒</h1>
               <p className="text-gray-300 text-sm">O Diário guarda informações sensíveis das crises e análises. Vamos protegê-lo com uma senha (PIN) apenas para pais e terapeutas.</p>
               
               <div className="flex flex-col gap-4 w-full mt-4">
@@ -456,7 +456,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                   placeholder="Digite um PIN (4 números)"
                   value={pin}
                   onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setPinError(''); }}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:border-accent-blue transition-colors text-white"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} transition-colors text-white"
                 />
                 <input 
                   type="password" 
@@ -464,7 +464,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                   placeholder="Confirme o PIN"
                   value={confirmPin}
                   onChange={(e) => { setConfirmPin(e.target.value.replace(/\D/g, '')); setPinError(''); }}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:border-accent-blue transition-colors text-white"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} transition-colors text-white"
                 />
                 {pinError && <p className="text-red-500 text-sm">{pinError}</p>}
               </div>

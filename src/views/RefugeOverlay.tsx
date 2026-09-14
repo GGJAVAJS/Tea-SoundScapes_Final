@@ -34,6 +34,14 @@ export function RefugeOverlay({ isOpen, onClose, activeRefuge, onToggleRefuge, t
 
   const displayMixes = getAllRecipes().filter(r => savedMixes.includes(r.id));
 
+  const isChild = themeMode === 'child';
+  const primaryBg = isChild ? 'bg-[#ff5c00]' : 'bg-accent-blue';
+  const primaryText = isChild ? 'text-[#ff5c00]' : 'text-accent-blue';
+  const primaryShadow = isChild ? 'shadow-[0_0_20px_rgba(255,92,0,0.15)]' : 'shadow-[0_0_20px_rgba(56,189,248,0.15)]';
+  const buttonShadow = isChild ? 'shadow-[0_0_15px_rgba(255,92,0,0.3)]' : 'shadow-[0_0_15px_rgba(56,189,248,0.3)]';
+  const primaryAccent = isChild ? 'accent-[#ff5c00]' : '${primaryAccent}';
+
+
   const handleVolumeChange = (id: string, val: number) => {
     setVolumes(prev => ({ ...prev, [id]: val }));
     setVolume(id, val);
@@ -70,28 +78,28 @@ export function RefugeOverlay({ isOpen, onClose, activeRefuge, onToggleRefuge, t
               const vol = volumes[sound.id] ?? 1;
               
               return (
-                <div key={sound.id} className={`p-5 flex flex-col gap-3 relative transition-colors duration-300 ${isActive ? 'glass-card-active shadow-[0_0_20px_rgba(56,189,248,0.15)]' : 'glass-card'}`}>
+                <div key={sound.id} className={`p-5 flex flex-col gap-3 relative transition-colors duration-300 ${isActive ? `glass-card-active ${primaryShadow}` : "glass-card"}`}>
                   <div className="flex justify-between items-start text-white font-medium mb-2">
                     <span>{sound.label}</span>
                     {isActive && (
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                          <Volume className="w-3.5 h-3.5 text-accent-blue" />
+                          <Volume className={`w-3.5 h-3.5 ${primaryText}`} />
                           <input 
                             type="range" 
                             min="0" max="1" step="0.01" 
                             value={vol}
                             onChange={(e) => handleVolumeChange(sound.id, Number(e.target.value))}
-                            className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-accent-blue"
+                            className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer ${primaryAccent}"
                           />
-                          <Volume2 className="w-3.5 h-3.5 text-accent-blue" />
+                          <Volume2 className={`w-3.5 h-3.5 ${primaryText}`} />
                         </div>
                         <motion.div 
                           initial={{ scale: 0 }} 
                           animate={{ scale: 1 }} 
                           className="w-6 h-6 bg-white rounded-full flex items-center justify-center shrink-0"
                         >
-                          <Check className="w-4 h-4 text-accent-blue" strokeWidth={3} />
+                          <Check className={`w-4 h-4 ${primaryText}`} strokeWidth={3} />
                         </motion.div>
                       </div>
                     )}
@@ -110,7 +118,7 @@ export function RefugeOverlay({ isOpen, onClose, activeRefuge, onToggleRefuge, t
                             ease: "easeInOut",
                             repeatType: "mirror"
                           }}
-                          className="w-1.5 bg-accent-blue rounded-full" 
+                          className={`w-1.5 ${primaryBg} rounded-full`} 
                         />
                       ))}
                     </div>
@@ -140,7 +148,7 @@ export function RefugeOverlay({ isOpen, onClose, activeRefuge, onToggleRefuge, t
               const isActive = activeRefuge === mix.id;
               
               return (
-                <div key={mix.id} className={`p-5 flex flex-col gap-3 relative transition-colors duration-300 ${isActive ? 'glass-card-active shadow-[0_0_20px_rgba(56,189,248,0.15)]' : 'glass-card'}`}>
+                <div key={mix.id} className={`p-5 flex flex-col gap-3 relative transition-colors duration-300 ${isActive ? `glass-card-active ${primaryShadow}` : "glass-card"}`}>
                   <div className="flex justify-between items-start text-white font-medium mb-2">
                     <div className="flex items-center gap-2">
                       <mix.icon className="w-4 h-4" style={{ color: mix.color }} />
@@ -164,7 +172,7 @@ export function RefugeOverlay({ isOpen, onClose, activeRefuge, onToggleRefuge, t
                           animate={{ scale: 1 }} 
                           className="w-6 h-6 bg-white rounded-full flex items-center justify-center shrink-0"
                         >
-                          <Check className="w-4 h-4 text-accent-blue" strokeWidth={3} />
+                          <Check className={`w-4 h-4 ${primaryText}`} strokeWidth={3} />
                         </motion.div>
                       </div>
                     )}
