@@ -515,9 +515,9 @@ export default function App() {
              <div className="max-w-md mx-auto p-6 pt-12 relative min-h-screen">
                 <button 
                   onClick={() => setIsPostCrisisDiaryOpen(false)}
-                  className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white"
+                  className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 z-[999] shadow-xl border border-white/40"
                 >
-                  ✕
+                  <span className="text-xl font-bold">✕</span>
                 </button>
                 
                 <DiaryView key="diary" 
