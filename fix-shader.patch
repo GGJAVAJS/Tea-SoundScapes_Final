@@ -1,0 +1,74 @@
+--- src/components/ui/SpaceBloomShader.tsx
++++ src/components/ui/SpaceBloomShader.tsx
+@@ -29,26 +29,54 @@
+ float hash(vec2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
+ 
++float noise(vec2 x) {
++    vec2 i = floor(x);
++    vec2 f = fract(x);
++    float a = hash(i);
++    float b = hash(i + vec2(1.0, 0.0));
++    float c = hash(i + vec2(0.0, 1.0));
++    float d = hash(i + vec2(1.0, 1.0));
++    vec2 u = f * f * (3.0 - 2.0 * f);
++    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
++}
++
++float fbm(vec2 x) {
++    float v = 0.0;
++    float a = 0.5;
++    vec2 shift = vec2(100.0);
++    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
++    for (int i = 0; i < 5; ++i) {
++        v += a * noise(x);
++        x = rot * x * 2.0 + shift;
++        a *= 0.5;
++    }
++    return v;
++}
++
+ vec3 proceduralSpace(vec2 uv) {
+     vec2 p = uv * 2.0 - 1.0;
+     p.x *= iResolution.x / iResolution.y;
+     
+     vec3 col = vec3(0.0);
+     
+     // Twinkling stars
+-    float h = hash(floor(p * 200.0));
++    float h = hash(floor(p * 250.0));
+     if(h > 0.99) {
+-        float b = hash(floor(p * 200.0) + 12.34);
+-        col += vec3(1.0) * (h - 0.99) * 100.0 * (0.5 + 0.5 * sin(iTime * 5.0 * b + b * 20.0));
++        float b = hash(floor(p * 250.0) + 12.34);
++        col += vec3(1.0, 0.9, 0.8) * (h - 0.99) * 80.0 * (0.5 + 0.5 * sin(iTime * 2.0 * b + b * 20.0));
+     }
+     
+-    // Nebula effect
+-    vec2 q = p;
+-    q *= rot(iTime * 0.02);
+-    float f = 0.0;
+-    float scale = 1.0;
+-    for(int i=0; i<4; i++) {
+-        f += hash(floor(q * 5.0 * scale)) / scale;
+-        q *= rot(0.5);
+-        scale *= 2.0;
+-    }
+-    col += vec3(0.3, 0.1, 0.5) * smoothstep(0.4, 1.0, f);
+-    col += vec3(0.1, 0.3, 0.6) * smoothstep(0.5, 1.0, hash(floor(p * 10.0 + iTime * 0.1)));
++    // Centered nebula effect
++    float d = length(p);
++    vec2 q = p * 2.0;
++    q *= rot(iTime * 0.05);
++    
++    float n = fbm(q + fbm(q + iTime * 0.1));
++    
++    // Dark space center, blooming outwards, centered
++    vec3 nebulaColor = mix(vec3(0.1, 0.2, 0.5), vec3(0.4, 0.1, 0.4), n);
++    
++    // Falloff from center to create a nice centered galaxy/nebula shape
++    float mask = smoothstep(1.5, 0.0, d);
++    
++    col += nebulaColor * n * mask * 1.5;
+     
+     return col;
+ }

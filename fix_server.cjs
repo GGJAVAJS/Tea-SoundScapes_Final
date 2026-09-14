@@ -1,0 +1,82 @@
+const fs = require('fs');
+let content = fs.readFileSync('server.ts', 'utf8');
+
+const newRoute = `app.post('/api/analyze-diary', async (req, res) => {
+    try {
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ error: 'GEMINI_API_KEY is not set' });
+      }
+      if (!ai) {
+        ai = new GoogleGenAI({
+          apiKey: process.env.GEMINI_API_KEY,
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            }
+          }
+        });
+      }
+
+      const { records } = req.body;
+      const recentRecords = records.filter((r: any) => Date.now() - r.date <= 7 * 24 * 60 * 60 * 1000);
+      
+      const payload = recentRecords.map((r: any) => ({
+        date: new Date(r.date).toISOString(),
+        intensidade_do_stress: r.intensity,
+        humor: r.moodId,
+        gatilhos: r.triggers,
+        estrategia_usada: r.estrategiaUsadaString
+      }));
+
+      const promptUser = \`Você é uma assistente chamada TEA SoundScapes IA.
+Embase-se nos dados fornecidos do diário do paciente nos últimos 7 dias. Seu objetivo é ajudar e encorajar.
+Comportamento da IA:
+- Destinatário: Usuário (No App)
+- Tom de Voz: Empático, encorajador, não clínico, focado em autocuidado.
+- Proibição absoluta: Proibido dar diagnósticos.
+- Tamanho: O texto DEVE ser curto, no máximo 2 linhas.
+Analise os dados e dê um insight reconfortante. Dados: \${JSON.stringify(payload)}\`;
+
+      const promptPsychologist = \`Você é uma assistente chamada TEA SoundScapes IA para o Terapeuta.
+Embase-se nos dados fornecidos do diário do paciente nos últimos 7 dias. 
+Comportamento da IA:
+- Destinatário: Psicólogo (No PDF)
+- Tom de Voz: Analítico, clínico, objetivo, focado em correlações e frequência.
+- Tamanho: Um parágrafo mais denso e técnico, destacando padrões, gatilhos recorrentes e horários de crise.
+Analise os dados: \${JSON.stringify(payload)}\`;
+
+      const responseUserP = ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: promptUser,
+      });
+
+      const responsePsychologistP = ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: promptPsychologist,
+      });
+
+      const [resUser, resPsych] = await Promise.all([
+        responseUserP.catch((e) => {
+          console.error("AI User Error:", e);
+          return { text: "Lembre-se de usar suas estratégias de regulação quando precisar. Você está indo muito bem!" };
+        }), 
+        responsePsychologistP.catch((e) => {
+          console.error("AI Therapist Error:", e);
+          return { text: "Não foi possível gerar a análise automatizada neste momento." };
+        })
+      ]);
+
+      res.json({
+        userInsight: resUser.text,
+        therapistSummary: resPsych.text
+      });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to generate insights' });
+    }
+  });`;
+
+content = content.replace(/app\.post\('\/api\/analyze-diary', async \(req, res\) => \{[\s\S]*?res\.status\(500\)\.json\(\{ error: 'Failed to generate insights' \}\);\s*\}\s*\}\);/, newRoute);
+fs.writeFileSync('server.ts', content);
+console.log('Fixed server.ts');

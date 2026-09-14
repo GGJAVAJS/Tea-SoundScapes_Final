@@ -44,22 +44,59 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
+:root {
+  --glass-blur: 12px;
+}
+
+body.child-mode {
+  --glass-blur: 6px;
+}
+
 /* Base custom glass class */
 @utility glass-card {
   background-color: var(--color-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
   border: 1px solid var(--color-glass-border);
   border-radius: 1.25rem; /* 20px */
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 @utility glass-card-active {
   background-color: var(--color-glass-active);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
   border: 1px solid var(--color-glass-active-border);
   border-radius: 1.25rem;
   box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+/* Global button & interactive touch/hover polish */
+button, [role="button"] {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Clean, glitch-free hover and active states */
+button.glass-card:hover, .glass-card.interactive-hover:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+button.glass-card:active, .glass-card.interactive-hover:active {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(0.98);
+}
+
+button.glass-card-active:hover {
+  background-color: rgba(56, 189, 248, 0.22);
+  border-color: rgba(56, 189, 248, 0.7);
+}
+
+button.glass-card-active:active {
+  transform: scale(0.98);
 }
 
 @utility custom-scrollbar {
@@ -114,4 +151,24 @@ body {
   .text-accent-blue {
     color: #0369a1 !important; /* darker blue for paper */
   }
+}
+@utility dinosaur-humor-image {
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 3px rgba(0,0,0,0.07)) drop-shadow(0 2px 2px rgba(0,0,0,0.06));
+}
+@utility dinosaur-humor-container {
+  width: 4rem;
+  height: 4rem;
+  font-size: 3rem; /* text-5xl */
+}
+
+@theme inline {
+  --color-background: var(--bg-dark);
+  --color-foreground: #ffffff;
+}
+
+:root {
+  --bg-dark: #000000;
 }

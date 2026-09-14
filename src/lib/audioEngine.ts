@@ -32,7 +32,8 @@ const activeNodes: Record<string, {
   gain: GainNode, 
   bassFilter?: BiquadFilterNode, 
   midFilter?: BiquadFilterNode, 
-  trebleFilter?: BiquadFilterNode, 
+  trebleFilter?: BiquadFilterNode,
+  analyser?: AnalyserNode, 
   extraSources?: any[], 
   baseVolume: number 
 }> = {};
@@ -138,7 +139,10 @@ export async function playSound(type: SoundType) {
     gainNode.connect(bassFilter);
     bassFilter.connect(midFilter);
     midFilter.connect(trebleFilter);
-    trebleFilter.connect(ctx.destination);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    trebleFilter.connect(analyser);
+    analyser.connect(ctx.destination);
 
     let targetVolume = 0.5;
     let fallbackToSynthetic = true;
@@ -173,7 +177,40 @@ export async function playSound(type: SoundType) {
     }
 
     if (fallbackToSynthetic) {
-      if (type === 'branco') {
+      if (type === 'delta_suaves') {
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        osc1.type = 'sine'; osc2.type = 'sine';
+        osc1.frequency.value = 110; 
+        osc2.frequency.value = 113.5; 
+        
+        const lfo = ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.05; 
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.value = 0.3; 
+        
+        const mixGain = ctx.createGain();
+        mixGain.gain.value = 0.5; 
+        
+        lfo.connect(lfoGain);
+        lfoGain.connect(mixGain.gain);
+        osc1.connect(mixGain);
+        osc2.connect(mixGain);
+        mixGain.connect(gainNode);
+        
+        osc1.start();
+        osc2.start();
+        lfo.start();
+        
+        syntheticSourceNode = ctx.createBufferSource();
+        syntheticSourceNode.buffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+        syntheticSourceNode.loop = true;
+        syntheticSourceNode.connect(gainNode);
+        
+        targetVolume = 0.45;
+        extraSources.push(osc1, osc2, lfo, lfoGain, mixGain);
+      } else if (type === 'branco') {
         if (!buffers.white) buffers.white = generateNoiseBuffer('white');
         syntheticSourceNode = ctx.createBufferSource();
         syntheticSourceNode.buffer = buffers.white;
@@ -367,7 +404,8 @@ export async function playSound(type: SoundType) {
       source: syntheticSourceNode, 
       gain: gainNode, 
       bassFilter, midFilter, trebleFilter, 
-      extraSources, baseVolume: targetVolume 
+      extraSources, baseVolume: targetVolume,
+      analyser 
     };
   } catch (e) {
     console.error("Audio playback error:", e);
@@ -407,7 +445,10 @@ export async function playUrlSound(id: string, url: string) {
     gainNode.connect(bassFilter);
     bassFilter.connect(midFilter);
     midFilter.connect(trebleFilter);
-    trebleFilter.connect(ctx.destination);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    trebleFilter.connect(analyser);
+    analyser.connect(ctx.destination);
 
     const sourceNode = ctx.createBufferSource();
     sourceNode.buffer = buffers[url];
@@ -419,10 +460,14 @@ export async function playUrlSound(id: string, url: string) {
     gainNode.gain.exponentialRampToValueAtTime(targetVolume, ctx.currentTime + 0.05);
     sourceNode.start();
 
-    activeNodes[id] = { source: sourceNode, gain: gainNode, bassFilter, midFilter, trebleFilter, baseVolume: targetVolume };
+    activeNodes[id] = { source: sourceNode, gain: gainNode, bassFilter, midFilter, trebleFilter, baseVolume: targetVolume, analyser };
   } catch (e) {
     console.error("Audio playback error:", e);
   }
+}
+
+export function getAnalyser(type: string): AnalyserNode | undefined {
+  return activeNodes[type]?.analyser;
 }
 
 export function setVolume(type: string, volumeScale: number) {
@@ -511,5 +556,53 @@ export function stopSound(type: SoundType) {
     }, 1200);
     
     delete activeNodes[type];
+  }
+}
+
+export function toggleGlobalPause(isPaused: boolean) {
+  const ctx = getAudioContext();
+  if (isPaused) {
+    if (ctx.state === 'running') {
+      ctx.suspend();
+    }
+    // Pause all active HTMLAudioElements
+    Object.values(activeNodes).forEach(node => {
+      if (node.audioElement) {
+        node.audioElement.pause();
+      }
+    });
+  } else {
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    // Play all active HTMLAudioElements
+    Object.values(activeNodes).forEach(node => {
+      if (node.audioElement) {
+        node.audioElement.play().catch(e => console.error("Resume playback error:", e));
+      }
+    });
+  }
+}
+
+export function updateMediaSession(title: string) {
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title || 'Mixagem',
+      artist: 'TEA SoundScapes',
+      album: 'Regulação Sensorial'
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => {
+      toggleGlobalPause(false);
+      window.dispatchEvent(new CustomEvent('mediaSessionPlay'));
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      toggleGlobalPause(true);
+      window.dispatchEvent(new CustomEvent('mediaSessionPause'));
+    });
+    navigator.mediaSession.setActionHandler('stop', () => {
+      Object.keys(activeNodes).forEach(id => stopSound(id as any));
+      window.dispatchEvent(new CustomEvent('mediaSessionStop'));
+    });
   }
 }

@@ -1,2 +1,3 @@
-import fs from 'fs';
-console.log("hi");
+const w = 100, h = 100;
+const dpr = 1;
+// ...

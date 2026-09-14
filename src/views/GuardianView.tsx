@@ -1,23 +1,26 @@
+import { SpaceBloomShader } from "../components/ui/SpaceBloomShader";
+
 import { motion, AnimatePresence } from 'motion/react';
 import { Share2, Settings2 } from 'lucide-react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, Environment, Html, useProgress, OrbitControls, Sparkles } from '@react-three/drei';
+import { PerspectiveCamera, useGLTF, Environment, Html, useProgress, OrbitControls, Sparkles, useAnimations } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useRef, useState, useEffect, Suspense, useMemo } from 'react';
 import * as THREE from 'three';
 import { playSound, stopSound, SoundType } from '../lib/audioEngine';
 
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { MistyLakeShader } from '../components/ui/MistyLakeShader';
+
 // Preload the large 3D model outside the component tree
-useGLTF.preload('/black_hole.glb');
 
 // Simple loading indicator for 3D canvas
 function Loader() {
-  const { progress } = useProgress();
   return (
     <Html center>
-      <div className="flex flex-col items-center justify-center space-y-2">
+      <div className="flex flex-col items-center justify-center space-y-2 bg-black/50 p-4 rounded-xl backdrop-blur-sm">
         <div className="w-12 h-12 border-4 border-accent-blue/30 border-t-accent-blue rounded-full animate-spin" />
-        <span className="text-white/70 text-xs font-mono font-medium">{Math.floor(progress)}%</span>
+        <span className="text-white text-sm font-medium whitespace-nowrap">Carregando modelo...</span>
       </div>
     </Html>
   );
@@ -215,18 +218,169 @@ interface GuardianViewProps {
   interventionActive: boolean;
   setInterventionActive: (v: boolean) => void;
   dbLevel: number;
+  micSensitivity: number;
+  setMicSensitivity: (v: number) => void;
   themeMode?: 'adult' | 'child';
-  kidsTheme?: 'dino' | 'space' | 'cars' | 'animals' | 'magic' | null;
+  kidsTheme?: 'dino' | 'space' | 'cars' | null;
+  onPanic?: () => void;
+}
+
+
+function DinoGuardianBackground({ dbLevel }: { dbLevel: number }) {
+  return (
+    <>
+      <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={75} />
+      <MistyLakeShader />
+    </>
+  );
+}
+
+
+function CarsHeartbeatPulses({ dbLevel }: { dbLevel: number }) {
+  const [pulses, setPulses] = useState<{ id: number; x: number; y: number }[]>([]);
+  const isExtremeAlert = dbLevel >= 70;
+  const isAlert = dbLevel >= 40 && dbLevel < 70;
+
+  useEffect(() => {
+    // Pulse rate based on alert
+    let currentBPM = 50;
+    if (isExtremeAlert) currentBPM = 160;
+    else if (isAlert) currentBPM = 100;
+    
+    let timeoutId: NodeJS.Timeout;
+
+    const spawnPulse = () => {
+      setPulses((prev) => [
+        ...prev.slice(isExtremeAlert ? -5 : -3),
+        {
+          id: Date.now(),
+          x: Math.random() * 80 + 10,
+          y: Math.random() * 80 + 10,
+        },
+      ]);
+
+      const intervalMs = (60 / currentBPM) * 1000;
+      timeoutId = setTimeout(spawnPulse, intervalMs);
+    };
+    
+    spawnPulse();
+    return () => clearTimeout(timeoutId);
+  }, [isAlert, isExtremeAlert]);
+
+  return (
+    <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+      {pulses.map((pulse) => (
+        <motion.div
+          key={pulse.id}
+          initial={{ scale: 0.5, opacity: 0.1 }}
+          animate={{ scale: isExtremeAlert ? 5 : (isAlert ? 4 : 3), opacity: 0 }}
+          transition={{ duration: isExtremeAlert ? 1.0 : 2.5, ease: "easeOut" }}
+          className="absolute rounded-full mix-blend-screen"
+          style={{
+            width: isExtremeAlert ? '16rem' : '10rem',
+            height: isExtremeAlert ? '16rem' : '10rem',
+            backgroundColor: isExtremeAlert ? "#ffffff" : "#888888",
+            top: `${pulse.y}%`,
+            left: `${pulse.x}%`,
+            filter: isExtremeAlert ? "blur(10px)" : "blur(15px)",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+
+
+function CarsTrafficLightBackground({ dbLevel }: { dbLevel: number }) {
+  const isExtremeAlert = dbLevel >= 70;
+  const isAlert = dbLevel >= 40 && dbLevel < 70;
+  const isSafe = dbLevel < 40;
+  
+  return (
+    <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#1a1a1a] to-[#000000] overflow-hidden flex items-center justify-center pointer-events-none">
+      {/* Film Grain */}
+      <div 
+        className="absolute inset-0 z-0 opacity-[0.15] mix-blend-overlay pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
+      
+      {/* Semáforo (Traffic Light Pillar) */}
+      <div className="relative z-10 w-28 h-72 bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-evenly py-6 overflow-hidden mt-8">
+        
+        {/* Red Light */}
+        <div className="relative flex items-center justify-center w-14 h-14">
+          <motion.div
+             animate={{
+               opacity: isExtremeAlert ? 1 : 0.05,
+               scale: isExtremeAlert ? [1, 1.2, 1] : 1,
+             }}
+             transition={{
+               scale: { duration: 0.6, repeat: Infinity, ease: "easeInOut" }
+             }}
+             className="absolute inset-0 rounded-full bg-[#ef4444] mix-blend-screen"
+             style={{ filter: isExtremeAlert ? "blur(15px)" : "blur(4px)" }}
+          />
+          <div className={`w-10 h-10 rounded-full z-10 transition-colors duration-500 ${isExtremeAlert ? 'bg-red-500 shadow-[0_0_25px_#ef4444]' : 'bg-red-950/40 border border-red-900/30'}`} />
+        </div>
+
+        {/* Yellow Light */}
+        <div className="relative flex items-center justify-center w-14 h-14">
+          <motion.div
+             animate={{
+               opacity: isAlert ? 1 : 0.05,
+               scale: isAlert ? [1, 1.15, 1] : 1,
+             }}
+             transition={{
+               scale: { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+             }}
+             className="absolute inset-0 rounded-full bg-[#f59e0b] mix-blend-screen"
+             style={{ filter: isAlert ? "blur(15px)" : "blur(4px)" }}
+          />
+          <div className={`w-10 h-10 rounded-full z-10 transition-colors duration-500 ${isAlert ? 'bg-amber-400 shadow-[0_0_25px_#f59e0b]' : 'bg-amber-950/40 border border-amber-900/30'}`} />
+        </div>
+
+        {/* Green Light */}
+        <div className="relative flex items-center justify-center w-14 h-14">
+          <motion.div
+             animate={{
+               opacity: isSafe ? 1 : 0.05,
+               scale: isSafe ? [1, 1.1, 1] : 1,
+             }}
+             transition={{
+               scale: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
+             }}
+             className="absolute inset-0 rounded-full bg-[#10b981] mix-blend-screen"
+             style={{ filter: isSafe ? "blur(20px)" : "blur(4px)" }}
+          />
+          <div className={`w-10 h-10 rounded-full z-10 transition-colors duration-500 ${isSafe ? 'bg-emerald-400 shadow-[0_0_25px_#10b981]' : 'bg-emerald-950/40 border border-emerald-900/30'}`} />
+        </div>
+        
+      </div>
+    </div>
+  );
 }
 
 export function GuardianView({ 
   monitorActive, setMonitorActive, 
   interventionActive, setInterventionActive, 
-  dbLevel, themeMode, kidsTheme 
+  dbLevel, micSensitivity, setMicSensitivity, 
+  themeMode, kidsTheme, onPanic
 }: GuardianViewProps) {
   const isSpaceTheme = themeMode === 'child' && kidsTheme === 'space';
   const isDinoTheme = themeMode === 'child' && kidsTheme === 'dino';
-  const isChildTheme = isSpaceTheme || isDinoTheme;
+  const isCarsTheme = themeMode === 'child' && kidsTheme === 'cars';
+  const isChildTheme = isSpaceTheme || isDinoTheme || isCarsTheme;
+  useEffect(() => {
+    if (isCarsTheme && dbLevel >= 70 && onPanic) {
+      onPanic();
+    }
+  }, [dbLevel, isCarsTheme, onPanic]);
+
   const isAlert = isChildTheme ? dbLevel > 40 : dbLevel > 65;
   
   // State for the settings prompt notification
@@ -236,84 +390,52 @@ export function GuardianView({
     setShowSettingsPrompt(true);
   }, []);
 
-  // Audio triggering on alert
-  useEffect(() => {
-    if (isSpaceTheme && isAlert && interventionActive) {
-      // Find what audio to play
-      try {
-        const userEmail = localStorage.getItem('currentUserEmail') || '';
-        const dataStr = localStorage.getItem(`onboardingData_${userEmail}`);
-        if (dataStr) {
-          const data = JSON.parse(dataStr);
-          if (data.refugeSound) {
-            playSound(data.refugeSound as SoundType);
-          } else {
-             // Fallback
-             playSound('rosa');
-          }
-        }
-      } catch (e) {}
-    } else {
-       // Stop playing audio when not alerting
-       try {
-        const userEmail = localStorage.getItem('currentUserEmail') || '';
-        const dataStr = localStorage.getItem(`onboardingData_${userEmail}`);
-        if (dataStr) {
-          const data = JSON.parse(dataStr);
-          if (data.refugeSound) {
-            stopSound(data.refugeSound as SoundType);
-          }
-        }
-        stopSound('rosa');
-      } catch (e) {}
-    }
-
-    // Cleanup on unmount
-    return () => {
-       stopSound('rosa');
-       try {
-        const userEmail = localStorage.getItem('currentUserEmail') || '';
-        const dataStr = localStorage.getItem(`onboardingData_${userEmail}`);
-        if (dataStr) {
-          const data = JSON.parse(dataStr);
-          if (data.refugeSound) {
-            stopSound(data.refugeSound as SoundType);
-          }
-        }
-      } catch(e) {}
-    };
-  }, [isAlert, isChildTheme, interventionActive]);
+  // Audio triggering logic removed as requested.
 
   if (isChildTheme) {
     return (
       <div className="fixed inset-0 z-0 bg-black pointer-events-auto">
         {/* 3D Canvas filling the entire screen */}
-        <Canvas 
-          camera={{ position: [0, 0, 8], fov: 45 }} 
-          className="absolute inset-0 w-full h-full"
-          dpr={1} // Limit pixel ratio to 1.5 for huge performance boost on mobile
-          performance={{ min: 0.5 }}
-        >
-          <Suspense fallback={<Loader />}>
-            <color attach="background" args={['#000000']} />
-            <ambientLight intensity={0.1} />
-            {isSpaceTheme && <BlackHoleModel dbLevel={dbLevel} />}
-            {isDinoTheme && <MeteorModel dbLevel={dbLevel} />}
-            {isSpaceTheme && <GalaxiesBackground dbLevel={dbLevel} />}
-            <OrbitControls 
-               enableZoom={true} 
-               enablePan={true} 
-               autoRotate={false}
-            />
-            <EffectComposer multisampling={0}>
-              <Bloom luminanceThreshold={0.2}  luminanceSmoothing={0.5} intensity={2.5} />
-            </EffectComposer>
-          </Suspense>
-        </Canvas>
+        
+        {isSpaceTheme && (
+          <div className="absolute inset-0 z-0 overflow-hidden bg-black">
+            <SpaceBloomShader />
+            {/* Adding the deep space radial gradient for UI legibility over the shader */}
+            <div className="pointer-events-none absolute inset-0 h-full bg-[radial-gradient(circle_at_50%_150%,rgba(0,0,0,0.0),rgba(0,0,0,0.4))]" />
+          </div>
+        )}
+        {!isCarsTheme && !isSpaceTheme && (
+          <ErrorBoundary>
+          <Canvas 
+            camera={{ position: [0, 0, 8], fov: 45 }} 
+            className="absolute inset-0 w-full h-full"
+            dpr={1} // Limit pixel ratio to 1.5 for huge performance boost on mobile
+            performance={{ min: 0.5 }}
+            gl={{ powerPreference: 'high-performance', antialias: false }}
+          >
+            <Suspense fallback={<Loader />}>
+              {!isDinoTheme && <color attach="background" args={['#000000']} />}
+              <ambientLight intensity={0.1} />
+              {isSpaceTheme && <BlackHoleModel dbLevel={dbLevel} />}
+              {isDinoTheme && <DinoGuardianBackground dbLevel={dbLevel} />}
+              {isSpaceTheme && <GalaxiesBackground dbLevel={dbLevel} />}
+              
+              {!(isDinoTheme || isCarsTheme) && <OrbitControls enableZoom={true} enablePan={true} autoRotate={false} />}
+              <EffectComposer multisampling={0}>
+                <Bloom luminanceThreshold={0.2}  luminanceSmoothing={0.5} intensity={2.5} />
+              </EffectComposer>
+            </Suspense>
+          </Canvas>
+        </ErrorBoundary>
+        )}
+        {isCarsTheme && <CarsTrafficLightBackground dbLevel={dbLevel} />}
+
+
+        {isCarsTheme && <CarsHeartbeatPulses dbLevel={dbLevel} />}
 
         {/* Top Left Header Overlay */}
         <div className="absolute top-12 left-4 z-10 bg-[#060b13]/80 backdrop-blur-md px-4 py-2 rounded-lg border border-white/5 shadow-2xl pointer-events-none">
-          <p className="text-[10px] text-gray-400 font-bold tracking-widest uppercase mb-0.5">TEA SoundScapes</p>
+          <p className="text-[10px] text-white font-bold tracking-widest uppercase mb-0.5">TEA SoundScapes</p>
           <h1 className="text-xl font-bold text-white tracking-tight">Sistema Guardião</h1>
         </div>
 
@@ -362,8 +484,8 @@ export function GuardianView({
                       />
                     </button>
                 </div>
+                
               </div>
-
               <button 
                 onClick={() => setShowSettingsPrompt(false)}
                 className="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 rounded-xl transition-colors"
@@ -401,7 +523,7 @@ export function GuardianView({
       className="p-6 pt-16 flex flex-col h-full max-w-md mx-auto"
     >
       <header className="mb-12">
-        <p className="text-xs text-gray-400 font-medium tracking-widest uppercase mb-1">TEA SoundScapes</p>
+        <p className="text-xs text-white font-medium tracking-widest uppercase mb-1">TEA SoundScapes</p>
         <h1 className="text-3xl font-poppins font-bold tracking-tight text-white leading-tight">
           Sistema Guardião
         </h1>
@@ -410,11 +532,8 @@ export function GuardianView({
       {/* dB Meter Visualization */}
       <div className="flex-1 flex flex-col items-center justify-center -mt-10 relative">
         <div className="relative flex items-center justify-center mb-8">
-          {/* Glowing background behind the meter */}
-          <div className="absolute inset-0 bg-accent-blue/10 blur-3xl rounded-full w-48 h-48 scale-150" />
-          
           {/* Minimalist Number Display */}
-          <div className="z-20 text-center glass-card-active p-8 rounded-full border border-accent-blue/30 shadow-[0_0_30px_rgba(56,189,248,0.15)] min-w-[200px] min-h-[200px] flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="z-20 text-center glass-card-active p-8 rounded-full border border-accent-blue/30 shadow-[0_0_60px_rgba(56,189,248,0.15)] min-w-[200px] min-h-[200px] flex flex-col items-center justify-center relative overflow-hidden">
             <motion.div 
                 className="absolute bottom-0 left-0 right-0 bg-accent-blue/10"
                 animate={{ height: `${Math.min(dbLevel, 100)}%` }}
@@ -431,7 +550,7 @@ export function GuardianView({
         </div>
       </div>
 
-      <div className="space-y-4 mb-24">
+      <div className="space-y-4 mb-24 relative z-10">
         <div className="glass-card p-5 flex flex-col gap-2">
           <div className="flex justify-between items-center">
             <span className="font-medium text-gray-200 text-lg">Monitoramento Ambiental</span>
@@ -464,6 +583,7 @@ export function GuardianView({
               />
             </button>
         </div>
+
       </div>
     </motion.div>
   );

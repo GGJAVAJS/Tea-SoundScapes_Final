@@ -19,7 +19,11 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
   const [refugeSound, setRefugeSound] = useState<string | null>(null);
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
   const [themeMode, setThemeMode] = useState<'adult' | 'child'>('adult');
-  const [kidsTheme, setKidsTheme] = useState<'dino' | 'space' | 'cars' | 'animals' | 'magic'>('dino');
+  const [kidsTheme, setKidsTheme] = useState<'dino' | 'space' | 'cars'>('dino');
+  const [childAutonomyFilter, setChildAutonomyFilter] = useState(true);
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [pinError, setPinError] = useState('');
 
   useEffect(() => {
     if (themeMode === 'child') {
@@ -36,7 +40,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
     };
   }, []);
 
-  const totalSteps = themeMode === 'child' ? 9 : 8;
+  const totalSteps = themeMode === 'child' ? 11 : 8;
   const nextStep = () => {
     setStep(prev => Math.min(prev + 1, totalSteps));
   }
@@ -56,7 +60,9 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
       hasTherapist,
       refugeSound,
       themeMode,
-      kidsTheme: themeMode === 'child' ? kidsTheme : undefined
+      kidsTheme: themeMode === 'child' ? kidsTheme : undefined,
+      childAutonomyFilter: themeMode === 'child' ? childAutonomyFilter : undefined,
+      parentalPin: themeMode === 'child' ? pin : undefined
     });
   };
 
@@ -169,7 +175,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
               <div className="grid gap-4 mt-2">
                 <button 
                   onClick={() => setThemeMode('adult')} 
-                  className={`glass-card p-6 rounded-2xl border flex flex-col items-center justify-center gap-4 transition-all ${themeMode === 'adult' ? 'bg-accent-blue/20 border-accent-blue text-white shadow-[0_0_20px_rgba(56,189,248,0.3)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                  className={`p-6 rounded-2xl border flex flex-col items-center justify-center gap-4 transition-all backdrop-blur-md ${themeMode === 'adult' ? 'bg-accent-blue/20 border-accent-blue text-white shadow-[0_0_20px_rgba(56,189,248,0.3)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
                 >
                   <div className="p-4 bg-white/10 rounded-full">
                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
@@ -178,7 +184,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                 </button>
                 <button 
                   onClick={() => setThemeMode('child')} 
-                  className={`glass-card p-6 rounded-2xl border flex flex-col items-center justify-center gap-4 transition-all ${themeMode === 'child' ? 'bg-[#ff5c00]/20 border-[#ff5c00] text-white shadow-[0_0_20px_rgba(255,92,0,0.3)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                  className={`p-6 rounded-2xl border flex flex-col items-center justify-center gap-4 transition-all backdrop-blur-md ${themeMode === 'child' ? 'bg-[#ff5c00]/20 border-[#ff5c00] text-white shadow-[0_0_20px_rgba(255,92,0,0.3)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
                 >
                   <div className="p-4 bg-white/10 rounded-full">
                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -319,7 +325,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
             </motion.div>
           )}
 
-          {step === 7 && (
+          {(step === 7 && themeMode === 'adult' || step === 9 && themeMode === 'child') && (
             <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex flex-col gap-6">
               <h1 className="text-3xl font-light text-white leading-tight">Vamos encontrar o Seu Refúgio 🎧</h1>
               <p className="text-gray-300 text-lg">Coloque os fones de ouvido. Qual destes sons te deixa mais calmo(a) e confortável?</p>
@@ -378,7 +384,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
             </motion.div>
           )}
 
-          {step === 8 && themeMode === 'child' && (
+          {step === 7 && themeMode === 'child' && (
             <motion.div key="stepKidsTheme" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col text-center items-center justify-center h-full gap-6">
               <h1 className="text-3xl font-bold text-[#ff5c00] leading-tight">Qual é o seu mundo favorito? 🌎</h1>
               
@@ -391,17 +397,9 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                   <span className="text-5xl">🚀</span>
                   <span className="font-bold text-white">Espaço Sideral</span>
                 </button>
-                <button onClick={() => setKidsTheme('cars')} className={`p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all ${kidsTheme === 'cars' ? 'bg-red-500/20 border-2 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]' : 'bg-white/5 border border-white/10 grayscale hover:grayscale-0'}`}>
+                <button onClick={() => setKidsTheme('cars')} className={`p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all col-span-2 ${kidsTheme === 'cars' ? 'bg-red-500/20 border-2 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]' : 'bg-white/5 border border-white/10 grayscale hover:grayscale-0'}`}>
                   <span className="text-5xl">🚗</span>
-                  <span className="font-bold text-white">Carros e Trens</span>
-                </button>
-                <button onClick={() => setKidsTheme('animals')} className={`p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all ${kidsTheme === 'animals' ? 'bg-green-500/20 border-2 border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)]' : 'bg-white/5 border border-white/10 grayscale hover:grayscale-0'}`}>
-                  <span className="text-5xl">🐶</span>
-                  <span className="font-bold text-white">Animais da Floresta</span>
-                </button>
-                <button onClick={() => setKidsTheme('magic')} className={`p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all col-span-2 ${kidsTheme === 'magic' ? 'bg-purple-500/20 border-2 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]' : 'bg-white/5 border border-white/10 grayscale hover:grayscale-0'}`}>
-                  <span className="text-5xl">🦄</span>
-                  <span className="font-bold text-white">Magia e Fantasia</span>
+                  <span className="font-bold text-white">Carros</span>
                 </button>
               </div>
 
@@ -414,6 +412,71 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
             </motion.div>
           )}
 
+          {step === 8 && themeMode === 'child' && (
+            <motion.div key="stepAutonomy" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col text-center items-center justify-center h-full gap-6">
+              <h1 className="text-3xl font-bold text-accent-blue leading-tight">Filtro de Autonomia</h1>
+              <p className="text-gray-300 text-lg">A criança fará o registro de suas próprias emoções após o uso do Som Refúgio?</p>
+              
+              <div className="flex flex-col gap-4 w-full mt-4">
+                <button onClick={() => setChildAutonomyFilter(true)} className={`p-6 rounded-2xl border transition-all text-left flex flex-col gap-1 ${childAutonomyFilter ? 'bg-accent-blue/20 border-accent-blue shadow-[0_0_20px_rgba(56,189,248,0.4)]' : 'bg-white/5 border-white/10 grayscale hover:grayscale-0'}`}>
+                  <span className={`font-bold ${childAutonomyFilter ? 'text-accent-blue' : 'text-white'}`}>Ligado (Sim)</span>
+                  <span className="text-sm text-gray-400">Após a utilização do SOS Pânico, a criança vê o termômetro lúdico dos temas para apontar como se sente. A tela de avaliação só aparecerá após a utilização do SOS Pânico.</span>
+                </button>
+                <button onClick={() => setChildAutonomyFilter(false)} className={`p-6 rounded-2xl border transition-all text-left flex flex-col gap-1 ${!childAutonomyFilter ? 'bg-accent-blue/20 border-accent-blue shadow-[0_0_20px_rgba(56,189,248,0.4)]' : 'bg-white/5 border-white/10 grayscale hover:grayscale-0'}`}>
+                  <span className={`font-bold ${!childAutonomyFilter ? 'text-accent-blue' : 'text-white'}`}>Desligado (Não)</span>
+                  <span className="text-sm text-gray-400">O app pula essa etapa. O registro aguarda silenciosamente no painel dos pais.</span>
+                </button>
+              </div>
+              <button 
+                onClick={nextStep}
+                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-4 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all text-lg"
+              >
+                Avançar
+              </button>
+            </motion.div>
+          )}
+          {step === 10 && themeMode === 'child' && (
+            <motion.div key="stepPin" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col text-center items-center justify-center h-full gap-6">
+              <h1 className="text-3xl font-bold text-accent-blue leading-tight">Proteger o Diário 🔒</h1>
+              <p className="text-gray-300 text-sm">O Diário guarda informações sensíveis das crises e análises. Vamos protegê-lo com uma senha (PIN) apenas para pais e terapeutas.</p>
+              
+              <div className="flex flex-col gap-4 w-full mt-4">
+                <input 
+                  type="password" 
+                  maxLength={4}
+                  placeholder="Digite um PIN (4 números)"
+                  value={pin}
+                  onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setPinError(''); }}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:border-accent-blue transition-colors text-white"
+                />
+                <input 
+                  type="password" 
+                  maxLength={4}
+                  placeholder="Confirme o PIN"
+                  value={confirmPin}
+                  onChange={(e) => { setConfirmPin(e.target.value.replace(/\D/g, '')); setPinError(''); }}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:border-accent-blue transition-colors text-white"
+                />
+                {pinError && <p className="text-red-500 text-sm">{pinError}</p>}
+              </div>
+              <button 
+                onClick={() => {
+                  if (pin.length < 4) {
+                    setPinError('O PIN deve ter 4 números.');
+                    return;
+                  }
+                  if (pin !== confirmPin) {
+                    setPinError('Os PINs não coincidem.');
+                    return;
+                  }
+                  nextStep();
+                }}
+                className="bg-accent-blue text-white font-bold py-4 rounded-full w-full mt-4 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all text-lg"
+              >
+                Salvar Senha
+              </button>
+            </motion.div>
+          )}
           {step === totalSteps && (
             <motion.div key="step6" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col text-center items-center justify-center h-full gap-6">
               <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/50 mb-4">

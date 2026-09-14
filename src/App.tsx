@@ -1,5 +1,10 @@
 import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react';
 import { AnimatePresence } from 'motion/react';
+
+import { FloatingDinoBackground } from './components/FloatingDinoBackground';
+import { FloatingCarsBackground } from './components/FloatingCarsBackground';
+import { FloatingSpaceBackground } from './components/FloatingSpaceBackground';
+
 import { TabIndex, SubView } from './types';
 import { BottomNav } from './components/BottomNav';
 import { playSound, stopSound, SoundType, toggleRefuge, playUrlSound } from './lib/audioEngine';
@@ -35,11 +40,40 @@ export default function App() {
   });
 
   
-  const [themeMode, setThemeMode] = useState<'adult'|'child'>('adult');
-  const [kidsTheme, setKidsTheme] = useState<'dino'|'space'|'cars'|'animals'|'magic'|null>(null);
-  const [parentalPin, setParentalPin] = useState('');
+  const [themeMode, setThemeMode] = useState<'adult'|'child'>(() => {
+    try {
+      const email = localStorage.getItem('currentUserEmail');
+      if (email) {
+        const data = localStorage.getItem(`onboardingData_${email}`);
+        if (data) return JSON.parse(data).themeMode || 'adult';
+      }
+    } catch(e) {}
+    return 'adult';
+  });
+  
+  const [kidsTheme, setKidsTheme] = useState<'dino'|'space'|'cars'|null>(() => {
+    try {
+      const email = localStorage.getItem('currentUserEmail');
+      if (email) {
+        const data = localStorage.getItem(`onboardingData_${email}`);
+        if (data) return JSON.parse(data).kidsTheme || null;
+      }
+    } catch(e) {}
+    return null;
+  });
+  
+  const [parentalPin, setParentalPin] = useState(() => {
+    try {
+      const email = localStorage.getItem('currentUserEmail');
+      if (email) {
+        const data = localStorage.getItem(`onboardingData_${email}`);
+        if (data) return JSON.parse(data).parentalPin || '';
+      }
+    } catch(e) {}
+    return '';
+  });
   const [isPinOpen, setIsPinOpen] = useState(false);
-  const [pendingTab, setPendingTab] = useState<{tab: TabIndex, subView?: SubView, diaryStartView?: 'registro'|'analises'} | null>(null);
+  const [pendingTab, setPendingTab] = useState<{tab: TabIndex, subView?: SubView, diaryStartView?: 'registro'|'analises'|'relatorios'} | null>(null);
 
   // New effect to apply theme mode from onboarding data
   useEffect(() => {
@@ -70,9 +104,11 @@ export default function App() {
   const [currentSubView, setCurrentSubView] = useState<SubView>('none');
   const [isPanicOpen, setIsPanicOpen] = useState(false);
   const [isSmsSent, setIsSmsSent] = useState(false);
-  const [diaryStartView, setDiaryStartView] = useState<'registro'|'analises'>('registro');
+  const [diaryStartView, setDiaryStartView] = useState<'registro'|'analises'|'relatorios'>('registro');
   
   const [isRefugeOpen, setIsRefugeOpen] = useState(false);
+  const [isPostCrisisDiaryOpen, setIsPostCrisisDiaryOpen] = useState(false);
+  const [childAutonomyFilter, setChildAutonomyFilter] = useState(true);
   const [isRefugeActive, setIsRefugeActive] = useState(false);
   const [activeRefugeSound, setActiveRefugeSound] = useState<string | null>(() => {
     try {
@@ -90,6 +126,9 @@ export default function App() {
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const [guardianMonitorActive, setGuardianMonitorActive] = useState(false);
+  const [micSensitivity, setMicSensitivity] = useState(() => {
+    try { return parseInt(localStorage.getItem('micSensitivity') || '100'); } catch(e) { return 100; }
+  });
   const [interventionActive, setInterventionActive] = useState(true);
   const [isGuardianAlertOpen, setIsGuardianAlertOpen] = useState(false);
 
@@ -173,7 +212,7 @@ export default function App() {
     }
   }, [interventionActive, isRefugeActive, isPanicOpen, isGuardianAlertOpen, isRefugeOpen]);
 
-  const dbLevel = useGuardian(guardianMonitorActive, handleSustainedPeak);
+  const dbLevel = useGuardian(guardianMonitorActive, handleSustainedPeak, micSensitivity);
 
   const handlePanicStart = () => {
     setIsPanicOpen(true);
@@ -186,6 +225,8 @@ export default function App() {
         intensity: 100,
         moodId: 'panic',
         triggers: ['SOS Pânico automático'],
+        estrategiaUsadaString: 'Botão de Pânico',
+        observacao: themeMode === 'child' && !childAutonomyFilter ? 'Registro automático (Aguardando preenchimento)' : '',
         date: Date.now()
       });
       localStorage.setItem(`diaryRecords_${email}`, JSON.stringify(records));
@@ -245,7 +286,7 @@ export default function App() {
     setIsRefugeOpen(true);
   };
 
-  const executeNavigation = (tab: TabIndex, subView: SubView = 'none', diaryStart?: 'registro'|'analises') => {
+  const executeNavigation = (tab: TabIndex, subView: SubView = 'none', diaryStart?: 'registro'|'analises'|'relatorios') => {
     setCurrentTab(tab);
     setCurrentSubView(subView);
     if (tab === 'diary') {
@@ -253,7 +294,7 @@ export default function App() {
     }
   };
 
-  const checkPinAndNavigate = (tab: TabIndex, subView: SubView = 'none', diaryStart?: 'registro'|'analises') => {
+  const checkPinAndNavigate = (tab: TabIndex, subView: SubView = 'none', diaryStart?: 'registro'|'analises'|'relatorios') => {
     if (themeMode === 'child' && tab === 'diary') {
       setPendingTab({ tab, subView, diaryStartView: diaryStart });
       setIsPinOpen(true);
@@ -305,6 +346,17 @@ export default function App() {
       localStorage.setItem(`onboardingCompleted_${email}`, 'true');
       localStorage.setItem(`onboardingData_${email}`, JSON.stringify(data));
       setActiveRefugeSound(data.refugeSound || null);
+      setChildAutonomyFilter(data.childAutonomyFilter !== false);
+      if (data.parentalPin) {
+        setParentalPin(data.parentalPin);
+      }
+      setThemeMode(data.themeMode || 'adult');
+      setKidsTheme(data.kidsTheme || null);
+      if (data.themeMode === 'child') {
+        document.body.classList.add('child-mode');
+      } else {
+        document.body.classList.remove('child-mode');
+      }
       setIsOnboarding(false);
     }} />;
   }
@@ -319,11 +371,14 @@ export default function App() {
         className="hidden" 
       />
       
-      <main className="h-full w-full relative">
+      <main key={currentUserEmail} className="h-full w-full relative">
+        {themeMode === 'child' && kidsTheme === 'space' && <FloatingSpaceBackground showImages={currentTab === 'home'} />}
+        {themeMode === 'child' && kidsTheme === 'dino' && <FloatingDinoBackground showImages={currentTab === 'home'} />}
+        {themeMode === 'child' && kidsTheme === 'cars' && <FloatingCarsBackground showImages={currentTab === 'home'} />}
         <Suspense fallback={<div className="flex items-center justify-center h-full w-full bg-background"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>}>
           <AnimatePresence mode="wait">
             {currentTab === 'home' && (
-              <HomeView 
+              <HomeView key="home" 
                 onPanic={handlePanicStart} 
                 isRefugeActive={isRefugeActive}
                 onRefugeToggle={() => setIsRefugeOpen(true)}
@@ -336,27 +391,75 @@ export default function App() {
               />
             )}
             {currentTab === 'guardian' && (
-              <GuardianView 
+              <GuardianView key="guardian" 
+                onPanic={handlePanicStart}
                 monitorActive={guardianMonitorActive}
                 setMonitorActive={setGuardianMonitorActive}
                 interventionActive={interventionActive}
                 setInterventionActive={setInterventionActive}
                 dbLevel={dbLevel}
+                micSensitivity={micSensitivity}
+                setMicSensitivity={(val) => {
+                  setMicSensitivity(val);
+                  localStorage.setItem('micSensitivity', val.toString());
+                }}
                 themeMode={themeMode}
                 kidsTheme={kidsTheme}
               />
             )}
-            {currentTab === 'community' && <CommunityView />}
-            {currentTab === 'diary' && <DiaryView startView={diaryStartView} />}
+            {currentTab === 'community' && (
+              <CommunityView key="community" 
+                themeMode={themeMode}
+                kidsTheme={kidsTheme}
+              />
+            )}
+            {currentTab === 'diary' && (
+              <DiaryView key="diary" 
+                startView={diaryStartView} 
+                themeMode={themeMode}
+                kidsTheme={kidsTheme}
+              />
+            )}
             {currentTab === 'profile' && (
-              <ProfileView 
+              <ProfileView key="profile" 
                 currentSubView={currentSubView} 
                 setSubView={setCurrentSubView} 
                 onSaveToDiary={handleSaveToDiaryAnalyses}
                 onLogout={() => {
+                  handleStopAllSounds();
+                  
                   localStorage.removeItem('isLoggedIn');
-                  setIsLoggedIn(false);
+                  localStorage.removeItem('currentUserEmail');
+                  
+                  // Complete State Reset
+                  setCurrentUserEmail('');
+                  setThemeMode('adult');
+                  setKidsTheme(null);
+                  setParentalPin('');
+                  setActiveRefugeSound(null);
                   setCurrentTab('home');
+                  setCurrentSubView('none');
+                  setChildAutonomyFilter(true);
+                  setIsRefugeActive(false);
+                  setActiveSounds({});
+                  setGuardianMonitorActive(false);
+                  setInterventionActive(true);
+                  setMicSensitivity(100);
+                  setIsPinOpen(false);
+                  setIsPanicOpen(false);
+                  setIsRefugeOpen(false);
+                  setImportedSounds([]);
+                  setPendingTab(null);
+                  setDiaryStartView('registro');
+                  setLastSmsAlertTime(null);
+                  setIsSmsOverlayOpen(false);
+                  setIsGuardianAlertOpen(false);
+                  setIsPostCrisisDiaryOpen(false);
+                  
+                  document.body.classList.remove('child-mode');
+                  
+                  // Reset all React state first for visual feedback
+                  setIsLoggedIn(false);
                 }}
                 themeMode={themeMode}
                 kidsTheme={kidsTheme}
@@ -370,7 +473,12 @@ export default function App() {
       <AnimatePresence>
         {currentSubView === 'none' && !isPanicOpen && !isGuardianAlertOpen && !isRefugeOpen && (
           <div className="hide-on-print">
-            <BottomNav activeTab={currentTab} onChange={handleTabChange} />
+            <BottomNav 
+              activeTab={currentTab} 
+              onChange={handleTabChange} 
+              themeMode={themeMode}
+              kidsTheme={kidsTheme}
+            />
           </div>
         )}
       </AnimatePresence>
@@ -378,13 +486,58 @@ export default function App() {
       <Suspense fallback={null}>
         <RefugeOverlay 
           isOpen={isRefugeOpen} 
-          onClose={() => setIsRefugeOpen(false)} 
+          onClose={() => {
+            setIsRefugeOpen(false);
+            if (themeMode === 'child') {
+              // Silently register pending crisis ALWAYS for Refuge
+              try {
+                const email = localStorage.getItem('currentUserEmail');
+                const data = localStorage.getItem(`diaryRecords_${email}`);
+                const records = data ? JSON.parse(data) : [];
+                records.push({
+                  intensity: 50,
+                  moodId: 'pending',
+                  triggers: ['Uso do Refúgio (Pendente)'],
+                  estrategiaUsadaString: 'Som Refúgio',
+                  observacao: 'Registro automático (Aguardando preenchimento)',
+                  date: Date.now()
+                });
+                localStorage.setItem(`diaryRecords_${email}`, JSON.stringify(records));
+                window.dispatchEvent(new Event('diary-updated'));
+              } catch(e) {}
+            }
+          }} 
           activeRefuge={activeRefugeSound}
           onToggleRefuge={handleToggleRefugeSound}
         />
+        {isPostCrisisDiaryOpen && (
+          <div className="fixed inset-0 z-[100] bg-[#060b13] overflow-y-auto">
+             <div className="max-w-md mx-auto p-6 pt-12 relative min-h-screen">
+                <button 
+                  onClick={() => setIsPostCrisisDiaryOpen(false)}
+                  className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white"
+                >
+                  ✕
+                </button>
+                
+                <DiaryView key="diary" 
+                  startView="registro" 
+                  themeMode={themeMode} 
+                  kidsTheme={kidsTheme} 
+                  isChildAutonomyMode={true} 
+                  onAutonomyComplete={() => setIsPostCrisisDiaryOpen(false)} 
+                />
+             </div>
+          </div>
+        )}
         <PanicOverlay 
           isOpen={isPanicOpen} 
-          onClose={() => setIsPanicOpen(false)} 
+          onClose={() => {
+            setIsPanicOpen(false);
+            if (themeMode === 'child' && childAutonomyFilter) {
+              setIsPostCrisisDiaryOpen(true);
+            }
+          }} 
           themeMode={themeMode}
           kidsTheme={kidsTheme}
           isSmsSent={isSmsSent}

@@ -10,7 +10,7 @@ interface RefugeOverlayProps {
   activeRefuge: string | null;
   onToggleRefuge: (id: string) => void;
   themeMode?: 'adult'|'child';
-  kidsTheme?: 'dino'|'space'|'cars'|'animals'|'magic'|null;
+  kidsTheme?: 'dino'|'space'|'cars'|null;
 }
 
 const REFUGE_SOUNDS = [

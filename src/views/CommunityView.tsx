@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Copy, Link, Check, Play, Trees, MoreVertical, Trash2, Volume, Volume2, Pause, Bookmark, Users, Heart, ChevronDown, Activity, Circle, Disc, Grid3x3, Wind, Droplets, Flame, Bird, Compass, Baby, Moon, Bus, BookOpen, Shield, Eye, EyeOff } from 'lucide-react';
 import { playSound, stopSound, setVolume, setEQ } from '../lib/audioEngine';
@@ -96,17 +97,21 @@ const RecipeCard: React.FC<{ recipe: MixRecipe, isThisPlaying: boolean, handlePl
       </div>
 
       <div className="absolute right-4 top-4 z-20 opacity-80">
-         {isThisPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white" />}
+        {isThisPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white" />}
       </div>
-      
-      
     </motion.div>
   );
 }
 
-export function CommunityView() {
+export interface CommunityViewProps {
+  themeMode?: 'adult' | 'child';
+  kidsTheme?: 'dino' | 'space' | 'cars' | null;
+}
+
+export function CommunityView({ themeMode, kidsTheme }: CommunityViewProps) {
   const [currentMix, setCurrentMix] = useState<string | null>(null);
   const [combinedRecipes, setCombinedRecipes] = useState<MixRecipe[]>(MOCK_RECIPES);
+  const isDinoTheme = themeMode === 'child' && kidsTheme === 'dino';
 
   useEffect(() => {
     try {
@@ -208,11 +213,11 @@ export function CommunityView() {
   }, [globalVolume, activeRecipe, isPlaying]);
 
   return (
-    <div className="w-full h-full overflow-y-auto pb-48 relative">
+    <div className="w-full h-full overflow-y-auto pb-48 relative bg-[#060b13]">
 
       {/* Header */}
       <div className="pt-16 px-4 mb-8">
-        <p className="text-xs text-gray-400 font-medium tracking-widest uppercase mb-1">TEA SoundScapes</p>
+        <p className="text-xs text-white font-medium tracking-widest uppercase mb-1">TEA SoundScapes</p>
         <h1 className="text-3xl font-bold text-white font-poppins mb-2 tracking-tight">Comunidade</h1>
         <p className="text-gray-400 text-sm">Explore e compartilhe mixagens sonoras.</p>
       </div>
@@ -286,7 +291,7 @@ export function CommunityView() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-            className="fixed bottom-[125px] left-4 right-4 z-40 pointer-events-auto"
+            className="fixed bottom-[95px] left-4 right-4 z-40 pointer-events-auto"
           >
             <div 
               onClick={() => setIsFullPlayerOpen(true)}
