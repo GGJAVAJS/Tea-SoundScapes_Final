@@ -16,7 +16,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
         
         {/* Top Left: Checkered Flag */}
         <motion.img 
-          src="/bandeira_corrida.png" 
+          src="/themes/cars/bandeira_corrida.png" 
           alt="" 
           className="absolute top-[8%] -left-6 w-32 opacity-90" 
           animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }} 
@@ -26,7 +26,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
         
         {/* Top Right: Checkered Flag (Flipped) */}
         <motion.img 
-          src="/bandeira_corrida.png" 
+          src="/themes/cars/bandeira_corrida.png" 
           alt="" 
           className="absolute top-[8%] -right-6 w-32 opacity-90 scale-x-[-1]" 
           animate={{ y: [0, -10, 0], rotate: [0, -5, 0] }} 
@@ -36,7 +36,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
 
         {/* Top Center: Finish Line */}
         <motion.img 
-          src="/chegada.png" 
+          src="/themes/cars/chegada.png" 
           alt="" 
           className="absolute top-[5%] left-[50%] -translate-x-[50%] w-36 opacity-90" 
           animate={{ y: [0, 8, 0] }} 
@@ -46,7 +46,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
 
         {/* Mid Left: F1 Car */}
         <motion.img 
-          src="/carro.png" 
+          src="/themes/cars/carro.png" 
           alt="" 
           className="absolute top-[40%] -left-8 w-44 opacity-95" 
           animate={{ y: [0, -15, 0], x: [0, 10, 0], rotate: [-5, 0, -5] }} 
@@ -56,7 +56,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
 
         {/* Mid Right: Stopwatch */}
         <motion.img 
-          src="/cronometro.png" 
+          src="/themes/cars/cronometro.png" 
           alt="" 
           className="absolute top-[45%] -right-8 w-36 opacity-95" 
           animate={{ y: [0, -12, 0], rotate: [0, -8, 0] }} 
@@ -66,7 +66,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
 
         {/* Bottom Center: Driver */}
         <motion.img 
-          src="/piloto.png" 
+          src="/themes/cars/piloto.png" 
           alt="" 
           className="absolute bottom-[10%] left-[50%] -translate-x-[50%] w-36 opacity-100 z-10" 
           animate={{ y: [0, -10, 0] }} 
@@ -76,7 +76,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
 
         {/* Bottom Left: Triple Cones */}
         <motion.img 
-          src="/cone.png" 
+          src="/themes/cars/cone.png" 
           alt="" 
           className="absolute bottom-[2%] -left-20 w-32 opacity-80 z-10" 
           animate={{ y: [0, -4, 0], rotate: [-8, -2, -8] }} 
@@ -84,7 +84,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
           style={{ willChange: 'transform' }} 
         />
         <motion.img 
-          src="/cone.png" 
+          src="/themes/cars/cone.png" 
           alt="" 
           className="absolute bottom-[8%] left-4 w-32 opacity-90 z-10" 
           animate={{ y: [0, -6, 0], rotate: [-2, 4, -2] }} 
@@ -92,7 +92,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
           style={{ willChange: 'transform' }} 
         />
         <motion.img 
-          src="/cone.png" 
+          src="/themes/cars/cone.png" 
           alt="" 
           className="absolute bottom-[4%] -left-6 w-40 opacity-100 z-20" 
           animate={{ y: [0, -5, 0], rotate: [-5, 0, -5] }} 
@@ -102,7 +102,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
 
         {/* Bottom Right: Triple Cones */}
         <motion.img 
-          src="/cone.png" 
+          src="/themes/cars/cone.png" 
           alt="" 
           className="absolute bottom-[2%] -right-20 w-32 opacity-80 z-10 scale-x-[-1]" 
           animate={{ y: [0, -5, 0], rotate: [8, 2, 8] }} 
@@ -110,7 +110,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
           style={{ willChange: 'transform' }} 
         />
         <motion.img 
-          src="/cone.png" 
+          src="/themes/cars/cone.png" 
           alt="" 
           className="absolute bottom-[8%] right-4 w-32 opacity-90 z-10 scale-x-[-1]" 
           animate={{ y: [0, -7, 0], rotate: [2, -4, 2] }} 
@@ -118,7 +118,7 @@ export const FloatingCarsBackground = React.memo(({ showImages = true }: { showI
           style={{ willChange: 'transform' }} 
         />
         <motion.img 
-          src="/cone.png" 
+          src="/themes/cars/cone.png" 
           alt="" 
           className="absolute bottom-[4%] -right-6 w-40 opacity-100 z-20 scale-x-[-1]" 
           animate={{ y: [0, -8, 0], rotate: [5, 0, 5] }} 

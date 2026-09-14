@@ -166,9 +166,7 @@ const DinoPanicBackground = () => {
             <NightCloudsShader />
             <ambientLight intensity={1.5} color="#cceeff" />
             <directionalLight position={[50, 100, -50]} intensity={2.5} castShadow />
-            
             <PterodactylModel />
-            
           </Suspense>
         </Canvas>
       </ErrorBoundary>

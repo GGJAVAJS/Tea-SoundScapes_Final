@@ -3,6 +3,19 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import * as THREE from 'three';
+import { registerSW } from 'virtual:pwa-register';
+
+// Register Service Worker for PWA
+const updateSW = registerSW({
+  onNeedRefresh() {
+    if (confirm('Nova versão disponível. Recarregar?')) {
+      updateSW(true);
+    }
+  },
+  onOfflineReady() {
+    console.log('App pronto para funcionar offline.');
+  },
+});
 
 // Global texture loading modifier to ensure stable paths and prevent HMR aborts
 THREE.DefaultLoadingManager.setURLModifier((url) => {

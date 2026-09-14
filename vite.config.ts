@@ -18,13 +18,33 @@ export default defineConfig(() => {
         devOptions: {
           enabled: true
         },
-        manifest: false, // Using public/manifest.json instead
+        manifest: {
+          name: 'TEA SoundScapes',
+          short_name: 'TEA Sound',
+          description: 'Experiências sensoriais terapêuticas com áudio e visuais generativos.',
+          theme_color: '#060b13',
+          background_color: '#060b13',
+          display: 'standalone',
+          start_url: '/',
+          icons: [
+            {
+              src: 'pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png'
+            }
+          ]
+        },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,
-          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024 // 10MB
+          maximumFileSizeToCacheInBytes: 15 * 1024 * 1024 // Increased to 15MB for heavy assets like Three.js
         }
       })
     ],

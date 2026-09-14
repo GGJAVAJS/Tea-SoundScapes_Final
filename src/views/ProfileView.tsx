@@ -86,7 +86,7 @@ export function ProfileView({ currentSubView, setSubView, onSaveToDiary, onLogou
       {themeMode === 'child' && kidsTheme === 'space' && (
         <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
           <motion.img 
-            src="/naveet.png" 
+            src="/themes/space/naveet.png" 
             alt=""
             className="absolute top-[10%] -right-4 w-40 opacity-70"
             animate={{ y: [0, -15, 0], rotate: [0, -2, 0] }}
@@ -101,7 +101,7 @@ export function ProfileView({ currentSubView, setSubView, onSaveToDiary, onLogou
         <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
           <div className="absolute inset-0 w-full max-w-md mx-auto">
             <motion.img 
-              src="/race-lights.png" 
+              src="/themes/cars/race-lights.png" 
               alt=""
               className="absolute top-[8%] -left-6 w-32 opacity-90"
               animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
@@ -109,15 +109,15 @@ export function ProfileView({ currentSubView, setSubView, onSaveToDiary, onLogou
               style={{ willChange: 'transform' }}
             />
             <motion.img 
-              src="/speed-meter.png" 
+              src="/themes/cars/speed-meter.png" 
               alt=""
               className="absolute top-[45%] -right-8 w-36 opacity-95"
               animate={{ y: [0, -12, 0], rotate: [0, -8, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
               style={{ willChange: 'transform' }}
             />
             <motion.img 
-              src="/podium-stand.png" 
+              src="/themes/cars/podium-stand.png" 
               alt=""
               className="absolute bottom-[10%] left-[50%] -translate-x-[50%] w-36 opacity-100 z-10"
               animate={{ y: [0, -10, 0] }}

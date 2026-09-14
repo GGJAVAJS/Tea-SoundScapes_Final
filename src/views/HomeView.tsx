@@ -128,11 +128,11 @@ function MixerOverlay({ dominantSoundId, dominantLabel, DominantIcon, activeSoun
                         {/* Custom Thumb */}
                         <div className="absolute pointer-events-none select-none transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-[60]" style={{ left: `${val * 100}%`, top: '50%' }}>
                            {isSpaceTheme ? (
-                             <div className="w-10 h-10 bg-contain bg-center bg-no-repeat drop-shadow-lg" style={{ backgroundImage: "url('/et.png')" }} />
+                             <div className="w-10 h-10 bg-contain bg-center bg-no-repeat drop-shadow-lg" style={{ backgroundImage: "url('/themes/space/et.png')" }} />
                            ) : isDinoTheme ? (
-                             <div className="w-10 h-10 bg-contain bg-center bg-no-repeat drop-shadow-lg" style={{ backgroundImage: "url('/dinosaur_smile.png')" }} />
+                             <div className="w-10 h-10 bg-contain bg-center bg-no-repeat drop-shadow-lg" style={{ backgroundImage: "url('/themes/dinossauro/dinosaur_smile.png')" }} />
                            ) : isCarsTheme ? (
-                             <div className="w-10 h-10 bg-contain bg-center bg-no-repeat drop-shadow-lg" style={{ backgroundImage: "url('/helmet.png')" }} />
+                             <div className="w-10 h-10 bg-contain bg-center bg-no-repeat drop-shadow-lg" style={{ backgroundImage: "url('/themes/cars/helmet.png')" }} />
                            ) : (
                              <div className="w-5 h-5 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,1)]" />
                            )}
@@ -184,9 +184,9 @@ function MixerOverlay({ dominantSoundId, dominantLabel, DominantIcon, activeSoun
                          {/* Custom Thumb */}
                          <div className="absolute pointer-events-none select-none transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-[60]" style={{ left: `${vol * 100}%`, top: '50%' }}>
                             {isSpaceTheme ? (
-                              <div className="w-10 h-10 bg-contain bg-center bg-no-repeat -rotate-45 drop-shadow-lg" style={{ backgroundImage: "url('/rocekt.png')" }} />
+                              <div className="w-10 h-10 bg-contain bg-center bg-no-repeat -rotate-45 drop-shadow-lg" style={{ backgroundImage: "url('/themes/space/rocekt.png')" }} />
                             ) : isDinoTheme ? (
-                              <div className="w-10 h-10 bg-contain bg-center bg-no-repeat drop-shadow-lg" style={{ backgroundImage: "url('/fossil_rex.png')" }} />
+                              <div className="w-10 h-10 bg-contain bg-center bg-no-repeat drop-shadow-lg" style={{ backgroundImage: "url('/themes/dinossauro/fossil_rex.png')" }} />
                             ) : isCarsTheme ? (
                               <div className="relative w-14 h-7 drop-shadow-lg scale-75">
                                 {/* Tires */}

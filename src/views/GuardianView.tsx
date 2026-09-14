@@ -3,7 +3,7 @@ import { SpaceBloomShader } from "../components/ui/SpaceBloomShader";
 import { motion, AnimatePresence } from 'motion/react';
 import { Share2, Settings2 } from 'lucide-react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { PerspectiveCamera, useGLTF, Environment, Html, useProgress, OrbitControls, Sparkles, useAnimations } from '@react-three/drei';
+import { PerspectiveCamera, useGLTF, Environment, Html, useProgress, OrbitControls, Sparkles, useAnimations, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useRef, useState, useEffect, Suspense, useMemo } from 'react';
 import * as THREE from 'three';
@@ -225,13 +225,110 @@ interface GuardianViewProps {
   onPanic?: () => void;
 }
 
+function TRexModel() {
+  const group = useRef<THREE.Group>(null);
+  const { scene, animations } = useGLTF('/animated_tyrannosaurus_rex_dinosaur_running_loop_corrigido.glb');
+  const { actions } = useAnimations(animations, scene);
+  
+  useEffect(() => {
+    if (actions) {
+      Object.values(actions).forEach(action => {
+        if (action) {
+          action.reset().play();
+        }
+      });
+    }
+  }, [actions]);
 
-function DinoGuardianBackground({ dbLevel }: { dbLevel: number }) {
   return (
-    <>
-      <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={75} />
-      <MistyLakeShader />
-    </>
+    // Centered and facing forward so OrbitControls can freely orbit around it
+    <group ref={group} position={[0, -2, 0]} rotation={[0, 0, 0]}>
+      <primitive object={scene} scale={0.8} />
+    </group>
+  );
+}
+
+function TreadmillEnvironment() {
+  const trees = useMemo(() => {
+    return Array.from({ length: 150 }).map(() => {
+      // Much narrower spread on the X axis so trees are visible on tall mobile screens
+      const x = (Math.random() - 0.5) * 25; 
+      const z = (Math.random() - 0.5) * 80;
+      // Leave a very tight clear path in the middle for the TRex
+      if (Math.abs(x) < 2.0) return null;
+      return {
+        x,
+        z,
+        scale: 1 + Math.random() * 2,
+      };
+    }).filter(Boolean) as {x: number, z: number, scale: number}[];
+  }, []);
+
+  const treeGroup = useRef<THREE.Group>(null);
+
+  useFrame((state, delta) => {
+    if (treeGroup.current) {
+      treeGroup.current.children.forEach((child) => {
+        // Move trees backwards relative to the TRex at a slow walking pace
+        child.position.z -= delta * 2.5; 
+        if (child.position.z < -40) {
+          child.position.z += 80;
+        }
+      });
+    }
+  });
+
+  return (
+    <group position={[0, -2, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[200, 200]} />
+        <meshStandardMaterial color="#112211" roughness={1} />
+      </mesh>
+
+      <group ref={treeGroup}>
+        {trees.map((t, i) => (
+          <mesh key={i} position={[t.x, 0, t.z]} rotation={[0, Math.random() * Math.PI, 0]} castShadow receiveShadow>
+            <coneGeometry args={[t.scale * 1.5, t.scale * 10, 5]} />
+            <meshStandardMaterial color="#0a2a10" flatShading roughness={1} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  );
+}
+
+function DinoInteractiveScene() {
+  return (
+    <div className="absolute inset-0 z-0 bg-[#0a192f]">
+      <ErrorBoundary>
+        <Canvas 
+          camera={{ position: [0, 1, 6], fov: 50 }} 
+          className="absolute inset-0 w-full h-full"
+          dpr={1}
+          shadows
+        >
+          <color attach="background" args={['#0a192f']} />
+          <fog attach="fog" args={['#0a192f', 5, 40]} />
+          
+          <Suspense fallback={<Loader />}>
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
+            
+            <Stars radius={50} depth={50} count={2000} factor={4} saturation={0} fade speed={1} />
+            
+            <TreadmillEnvironment />
+            <TRexModel />
+            
+            <OrbitControls 
+              enablePan={false} 
+              minDistance={3} 
+              maxDistance={12} 
+              maxPolarAngle={Math.PI / 2 - 0.05} 
+            />
+          </Suspense>
+        </Canvas>
+      </ErrorBoundary>
+    </div>
   );
 }
 
@@ -404,29 +501,8 @@ export function GuardianView({
             <div className="pointer-events-none absolute inset-0 h-full bg-[radial-gradient(circle_at_50%_150%,rgba(0,0,0,0.0),rgba(0,0,0,0.4))]" />
           </div>
         )}
-        {!isCarsTheme && !isSpaceTheme && (
-          <ErrorBoundary>
-          <Canvas 
-            camera={{ position: [0, 0, 8], fov: 45 }} 
-            className="absolute inset-0 w-full h-full"
-            dpr={1} // Limit pixel ratio to 1.5 for huge performance boost on mobile
-            performance={{ min: 0.5 }}
-            gl={{ powerPreference: 'high-performance', antialias: false }}
-          >
-            <Suspense fallback={<Loader />}>
-              {!isDinoTheme && <color attach="background" args={['#000000']} />}
-              <ambientLight intensity={0.1} />
-              {isSpaceTheme && <BlackHoleModel dbLevel={dbLevel} />}
-              {isDinoTheme && <DinoGuardianBackground dbLevel={dbLevel} />}
-              {isSpaceTheme && <GalaxiesBackground dbLevel={dbLevel} />}
-              
-              {!(isDinoTheme || isCarsTheme) && <OrbitControls enableZoom={true} enablePan={true} autoRotate={false} />}
-              <EffectComposer multisampling={0}>
-                <Bloom luminanceThreshold={0.2}  luminanceSmoothing={0.5} intensity={2.5} />
-              </EffectComposer>
-            </Suspense>
-          </Canvas>
-        </ErrorBoundary>
+        {isDinoTheme && (
+          <DinoInteractiveScene />
         )}
         {isCarsTheme && <CarsTrafficLightBackground dbLevel={dbLevel} />}
 

@@ -13,15 +13,15 @@ function getAudioContext() {
 export type SoundType = 'chuva' | 'branco' | 'vento' | 'rosa' | 'marrom' | 'agua' | 'passaros' | 'natureza' | 'lareira' | string;
 
 export const customUrls: Record<string, string> = {
-  'chuva': '/Chuva.mp3',
-  'branco': '/Ruído Branco.mp3',
-  'vento': '/Vento.mp3',
-  'rosa': '/Ruído Rosa.mp3',
-  'marrom': '/Ruído Marrom.mp3',
-  'agua': '/Agua.mp3',
-  'passaros': '/Passaros.mp3',
-  'natureza': '/Natureza.mp3',
-  'lareira': '/Lareira.mp3'
+  'chuva': '/sounds/Chuva.mp3',
+  'branco': '/sounds/Ruído Branco.mp3',
+  'vento': '/sounds/Vento.mp3',
+  'rosa': '/sounds/Ruído Rosa.mp3',
+  'marrom': '/sounds/Ruído Marrom.mp3',
+  'agua': '/sounds/Agua.mp3',
+  'passaros': '/sounds/Passaros.mp3',
+  'natureza': '/sounds/Natureza.mp3',
+  'lareira': '/sounds/Lareira.mp3'
 };
 
 const audioElements: Record<string, { audio: HTMLAudioElement, source?: MediaElementAudioSourceNode }> = {};

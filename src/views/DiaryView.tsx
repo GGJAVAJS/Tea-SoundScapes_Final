@@ -47,26 +47,39 @@ const FuelTankMood = ({ mood }: { mood: string }) => {
   );
 };
 
-const AstronautMood = ({ mood }: { mood: string }) => {
+const AstronautMood = ({ mood, kidsTheme }: { mood: string; kidsTheme?: string }) => {
   let imgSrc = '';
+  const currentTheme = kidsTheme || (typeof window !== 'undefined' ? localStorage.getItem('kidsTheme') : 'space') || 'space';
+  const themeName = currentTheme === 'dino' ? 'dinossauro' : currentTheme;
+
   switch (mood) {
     case 'great':
-      imgSrc = '/happy-astronaut.png';
+      if (themeName === 'dinossauro') imgSrc = '/themes/dinossauro/dinosaur_happy.png';
+      else if (themeName === 'cars') imgSrc = '/themes/cars/chegada.png';
+      else imgSrc = '/themes/space/happy-astronaut.png';
       break;
     case 'good':
-      imgSrc = '/astronaut-calm.png';
+      if (themeName === 'dinossauro') imgSrc = '/themes/dinossauro/dinosaur_smile.png';
+      else if (themeName === 'cars') imgSrc = '/themes/cars/carro.png';
+      else imgSrc = '/themes/space/astronaut-calm.png';
       break;
     case 'neutral':
-      imgSrc = '/alien_neutral.png';
+      if (themeName === 'dinossauro') imgSrc = '/themes/dinossauro/dinosaur_neutral.png';
+      else if (themeName === 'cars') imgSrc = '/themes/cars/cronometro.png';
+      else imgSrc = '/themes/space/alien_neutral.png';
       break;
     case 'bad':
-      imgSrc = '/alien_sad.png';
+      if (themeName === 'dinossauro') imgSrc = '/themes/dinossauro/dynosaurus_angry.png';
+      else if (themeName === 'cars') imgSrc = '/themes/cars/cone.png';
+      else imgSrc = '/themes/space/alien_sad.png';
       break;
     case 'terrible':
-      imgSrc = '/alien_rage.png';
+      if (themeName === 'dinossauro') imgSrc = '/themes/dinossauro/dinossaur_rage.png';
+      else if (themeName === 'cars') imgSrc = '/themes/cars/bandeira_corrida.png';
+      else imgSrc = '/themes/space/alien_rage.png';
       break;
     default:
-      imgSrc = '/alien_neutral.png';
+      imgSrc = '/themes/space/alien_neutral.png';
   }
   return <img src={imgSrc} alt={mood} className="w-[2em] h-[2em] object-contain drop-shadow-md scale-125" />;
 };
@@ -366,7 +379,7 @@ function RegistroView({ onSave, isDinoTheme, isSpaceTheme, isCarsTheme, isChildA
                     {isSpaceTheme ? (
                       <AstronautMood mood={mood.id} />
                     ) : isDinoTheme ? (
-                      <img src={mood.id === 'great' ? '/dinosaur_happy.png' : mood.id === 'good' ? '/dinosaur_smile.png' : mood.id === 'neutral' ? '/dinosaur_neutral.png' : mood.id === 'bad' ? '/dynosaurus_angry.png' : '/dinossaur_rage.png'} alt={mood.label} className="w-10 h-10 sm:w-14 sm:h-14 object-contain drop-shadow-md shrink-0" />
+                      <img src={mood.id === 'great' ? '/themes/dinossauro/dinosaur_happy.png' : mood.id === 'good' ? '/themes/dinossauro/dinosaur_smile.png' : mood.id === 'neutral' ? '/themes/dinossauro/dinosaur_neutral.png' : mood.id === 'bad' ? '/themes/dinossauro/dynosaurus_angry.png' : '/themes/dinossauro/dinossaur_rage.png'} alt={mood.label} className="w-10 h-10 sm:w-14 sm:h-14 object-contain drop-shadow-md shrink-0" />
                     ) : isCarsTheme ? (
                       <FuelTankMood mood={mood.id} />
                     ) : (
@@ -379,7 +392,7 @@ function RegistroView({ onSave, isDinoTheme, isSpaceTheme, isCarsTheme, isChildA
                   {isSpaceTheme ? (
                     <AstronautMood mood={mood.id} />
                   ) : isDinoTheme ? (
-                      <img src={mood.id === 'great' ? '/dinosaur_happy.png' : mood.id === 'good' ? '/dinosaur_smile.png' : mood.id === 'neutral' ? '/dinosaur_neutral.png' : mood.id === 'bad' ? '/dynosaurus_angry.png' : '/dinossaur_rage.png'} alt={mood.label} className="w-10 h-10 sm:w-14 sm:h-14 object-contain drop-shadow-md shrink-0" />
+                      <img src={mood.id === 'great' ? '/themes/dinossauro/dinosaur_happy.png' : mood.id === 'good' ? '/themes/dinossauro/dinosaur_smile.png' : mood.id === 'neutral' ? '/themes/dinossauro/dinosaur_neutral.png' : mood.id === 'bad' ? '/themes/dinossauro/dynosaurus_angry.png' : '/themes/dinossauro/dinossaur_rage.png'} alt={mood.label} className="w-10 h-10 sm:w-14 sm:h-14 object-contain drop-shadow-md shrink-0" />
                     ) : isCarsTheme ? (
                       <FuelTankMood mood={mood.id} />
                     ) : (
@@ -477,7 +490,7 @@ function RegistroView({ onSave, isDinoTheme, isSpaceTheme, isCarsTheme, isChildA
 
 
 function PrintableClinicalReport({ 
-  records, isSpaceTheme, isCarsTheme, isDinoTheme, 
+  records, isSpaceTheme, isCarsTheme, isDinoTheme, themeMode,
   stats, chartData, topStrategies = [], heatmapData, topTriggers = [],
   diasComCrises, diasSemCrises, timelineRecords, aiInsights 
 }: any) {
@@ -671,7 +684,7 @@ function PrintableClinicalReport({
                       <div key={i} className="flex justify-between items-center text-xs">
                         <span className="text-[#e5e7eb]">{new Date(d.date).toLocaleDateString('pt-BR')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{isSpaceTheme && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} /> : d.emojis.slice(-1)[0]}</span>
+                          <span className="text-sm">{themeMode === 'child' && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : undefined} /> : d.emojis.slice(-1)[0]}</span>
                           <span className="text-white bg-[#f43f5e] px-2 py-0.5 rounded font-medium">{d.crises} crise(s)</span>
                         </div>
                       </div>
@@ -690,7 +703,7 @@ function PrintableClinicalReport({
                       <div key={i} className="flex justify-between items-center text-xs">
                         <span className="text-center text-[#9ca3af]">{new Date(d.date).toLocaleDateString('pt-BR')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{isSpaceTheme && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} /> : d.emojis.slice(-1)[0]}</span>
+                          <span className="text-sm">{themeMode === 'child' && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : undefined} /> : d.emojis.slice(-1)[0]}</span>
                           <span className="text-[#4ade80] bg-[rgba(34,197,94,0.1)] px-2 py-0.5 rounded font-medium">✓ Sem crises</span>
                         </div>
                       </div>
@@ -787,7 +800,11 @@ function AnalisesView({ isDinoTheme, isSpaceTheme, isCarsTheme, themeMode,
         const response = await fetch('/api/analyze-diary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ records, themeMode })
+          body: JSON.stringify({ 
+            records, 
+            themeMode, 
+            kidsTheme: isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : null 
+          })
         });
         if (response.ok) {
           const data = await response.json();
@@ -888,7 +905,7 @@ function AnalisesView({ isDinoTheme, isSpaceTheme, isCarsTheme, themeMode,
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, zIndex: -9999, pointerEvents: 'none' }}>
       <div ref={pdfContainerRef}>
         <PrintableClinicalReport 
-          records={records} isSpaceTheme={isSpaceTheme} isCarsTheme={isCarsTheme} isDinoTheme={isDinoTheme}
+          records={records} isSpaceTheme={isSpaceTheme} isCarsTheme={isCarsTheme} isDinoTheme={isDinoTheme} themeMode={themeMode}
           stats={stats} chartData={chartData} topStrategies={topStrategies} heatmapData={heatmapData} topTriggers={topTriggers}
           diasComCrises={diasComCrises} diasSemCrises={diasSemCrises} timelineRecords={timelineRecords} aiInsights={aiInsights}
         />
@@ -1084,7 +1101,7 @@ function AnalisesView({ isDinoTheme, isSpaceTheme, isCarsTheme, themeMode,
                       <div key={i} className="flex justify-between items-center text-xs">
                         <span className="text-[#e5e7eb]">{new Date(d.date).toLocaleDateString('pt-BR')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{isSpaceTheme && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} /> : d.emojis.slice(-1)[0]}</span>
+                          <span className="text-sm">{(isSpaceTheme || isDinoTheme || isCarsTheme) && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : undefined} /> : d.emojis.slice(-1)[0]}</span>
                           <span className="text-white bg-danger-panic px-2 py-0.5 rounded font-medium">{d.crises} crise(s)</span>
                         </div>
                       </div>
@@ -1103,7 +1120,7 @@ function AnalisesView({ isDinoTheme, isSpaceTheme, isCarsTheme, themeMode,
                       <div key={i} className="flex justify-between items-center text-xs">
                         <span className="text-center text-[#9ca3af]">{new Date(d.date).toLocaleDateString('pt-BR')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{isSpaceTheme && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} /> : d.emojis.slice(-1)[0]}</span>
+                          <span className="text-sm">{(isSpaceTheme || isDinoTheme || isCarsTheme) && d.moodIds && d.moodIds.slice(-1)[0] ? <AstronautMood mood={d.moodIds.slice(-1)[0]} kidsTheme={isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : undefined} /> : d.emojis.slice(-1)[0]}</span>
                           <span className="text-[#4ade80] bg-[rgba(34,197,94,0.1)] px-2 py-0.5 rounded font-medium">✓ Sem crises</span>
                         </div>
                       </div>

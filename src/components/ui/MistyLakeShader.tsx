@@ -135,7 +135,7 @@ vec3 raymarchClouds( const in vec3 ro, const in vec3 rd, const in vec3 bgc, cons
 	
     // raymarch	
 	vec4 sum = vec4( 0.0 );
-	for( int i=0; i<64; i++ ) {
+	for( int i=0; i<32; i++ ) {
 		if( sum.a > 0.99 || t > maxdist ) continue;
 		
 		vec3 pos = ro + t*rd;
@@ -149,7 +149,7 @@ vec3 raymarchClouds( const in vec3 ro, const in vec3 rd, const in vec3 bgc, cons
 		sum = sum + col*(1.0 - sum.a);	
 
         // advance ray with LOD
-		t += (0.03*CLOUDSCALE)+t*0.012;
+		t += (0.06*CLOUDSCALE)+t*0.024;
 	}
 
     // blend with background	
@@ -173,10 +173,10 @@ vec3 raymarchTerrain( const in vec3 ro, const in vec3 rd, const in vec3 bgc, con
 	bool hit = false;
 	vec3 col = bgc;
 	
-	for( int i=0; i<80; i++ ) {
+	for( int i=0; i<40; i++ ) {
 		if( hit ) break;
 		
-		t += 8. + t/300.;
+		t += 16. + t/150.;
 		vec3 pos = ro + t*rd;
 		
 		if( pos.y < terrainMap(pos) ) {

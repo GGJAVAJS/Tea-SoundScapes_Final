@@ -32,11 +32,11 @@ uniform vec2 iResolution;
 #define DENSITY      2.10    // optical density multiplier
 
 // ---- MARCH (raise for stills, lower for mobile) ------------
-#define STEPS        72      // primary samples
-#define LIGHT_STEPS  3       // shadow samples toward moon
-#define LIGHT_STEP   0.60    // first shadow probe; spacing doubles each tap
-#define STEP_NEAR    0.175    // sample spacing at the camera
-#define STEP_GROW    0.025   // spacing growth per unit of depth
+#define STEPS        36      // primary samples
+#define LIGHT_STEPS  2       // shadow samples toward moon
+#define LIGHT_STEP   1.20    // first shadow probe; spacing doubles each tap
+#define STEP_NEAR    0.350   // sample spacing at the camera
+#define STEP_GROW    0.050   // spacing growth per unit of depth
 #define MAX_DIST     48.0
 #define ABSORB       0.62
 #define LIGHT_ABSORB 0.55
