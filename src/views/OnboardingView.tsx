@@ -456,7 +456,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                   placeholder="Digite um PIN (4 números)"
                   value={pin}
                   onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setPinError(''); }}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} transition-colors text-white"
+                  className={`w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} transition-colors text-white`}
                 />
                 <input 
                   type="password" 
@@ -464,7 +464,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
                   placeholder="Confirme o PIN"
                   value={confirmPin}
                   onChange={(e) => { setConfirmPin(e.target.value.replace(/\D/g, '')); setPinError(''); }}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} transition-colors text-white"
+                  className={`w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] placeholder:tracking-normal placeholder:text-base placeholder:font-sans placeholder:text-gray-400 focus:outline-none ${isChild ? "focus:border-[#ff5c00]" : "focus:border-accent-blue"} transition-colors text-white`}
                 />
                 {pinError && <p className="text-red-500 text-sm">{pinError}</p>}
               </div>
