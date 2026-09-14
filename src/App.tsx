@@ -509,6 +509,8 @@ export default function App() {
           }} 
           activeRefuge={activeRefugeSound}
           onToggleRefuge={handleToggleRefugeSound}
+          themeMode={themeMode}
+          kidsTheme={kidsTheme}
         />
         {isPostCrisisDiaryOpen && (
           <div className="fixed inset-0 z-[100] bg-[#060b13] overflow-y-auto">
