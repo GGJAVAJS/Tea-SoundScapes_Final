@@ -12,7 +12,7 @@ import RainShader from '../components/ui/rain-shader';
 import UniverseWithinShader from '../components/ui/UniverseWithinShader';
 import { PublishMixOverlay } from "./PublishMixOverlay";
 import { AdultMixerOverlay } from "../components/AdultMixerOverlay";
-import { CloudRain, Wind, Activity, Plus, ShieldAlert, MoreVertical, X, SlidersHorizontal, Flame, Droplets, Bird, Trees, ChevronDown, Eye, EyeOff, Pause, Play, Bookmark, Brain, Grid3x3, Moon, Bus, Baby, BookOpen, Trash2 } from 'lucide-react';
+import { Music, Coffee, Heart, CloudRain, Wind, Activity, Plus, ShieldAlert, MoreVertical, X, SlidersHorizontal, Flame, Droplets, Bird, Trees, ChevronDown, Eye, EyeOff, Pause, Play, Bookmark, Brain, Grid3x3, Moon, Bus, Baby, BookOpen, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
