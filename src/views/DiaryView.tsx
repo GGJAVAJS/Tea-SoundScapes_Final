@@ -676,13 +676,28 @@ function PrintableClinicalReport({
           </div>
       )}
 
-      {aiInsights?.therapistSummary && (
+      {isLoadingInsights ? (
+        <div className="bg-[rgba(56,189,248,0.05)] rounded-2xl p-5 mb-4 border border-[rgba(56,189,248,0.3)] flex flex-col items-center justify-center">
+          <div className="w-8 h-8 border-4 border-[#38bdf8] border-t-transparent rounded-full animate-spin mb-3"></div>
+          <p className="text-sm text-[#e5e7eb]">Carregando análise da IA...</p>
+        </div>
+      ) : aiInsights?.therapistSummary ? (
         <div className="bg-[rgba(56,189,248,0.05)] rounded-2xl p-5 mb-4 border border-[rgba(56,189,248,0.3)]">
             <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-[#38bdf8]" />
               Resumo Analítico da IA (Visão do Terapeuta)
             </h3>
             <p className="text-sm text-[#e5e7eb] leading-relaxed italic">{aiInsights.therapistSummary}</p>
+            {aiInsights.therapistSummary.includes('Não foi possível') && (
+              <div className="flex justify-center mt-4">
+                <button onClick={() => fetchInsights(true)} className="px-5 py-2 bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#0f172a] font-bold rounded-full text-sm transition-all shadow-[0_0_15px_rgba(56,189,248,0.4)]">Tentar Gerar Resumo Novamente</button>
+              </div>
+            )}
+        </div>
+      ) : records.length > 0 && (
+        <div className="bg-[rgba(56,189,248,0.05)] rounded-2xl p-5 mb-4 border border-[rgba(56,189,248,0.3)] flex flex-col items-center justify-center">
+           <p className="text-sm text-[#e5e7eb] mb-4">O resumo analítico ainda não foi gerado.</p>
+           <button onClick={() => fetchInsights(true)} className="px-5 py-2 bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#0f172a] font-bold rounded-full text-sm transition-all shadow-[0_0_15px_rgba(56,189,248,0.4)]">Gerar Resumo da IA</button>
         </div>
       )}
       
@@ -815,31 +830,44 @@ function AnalisesView({ isDinoTheme, isSpaceTheme, isCarsTheme, themeMode,
   const [aiInsights, setAiInsights] = useState<{userInsight?: string, therapistSummary?: string}>({});
   const [isLoadingInsights, setIsLoadingInsights] = useState(true);
 
-  useEffect(() => {
-    const fetchInsights = async () => {
-      try {
-        const response = await fetch('/api/analyze-diary', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            records, 
-            themeMode, 
-            kidsTheme: isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : null 
-          })
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setAiInsights(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch AI insights', err);
-      } finally {
-        setIsLoadingInsights(false);
+  const hasFetchedSummary = useRef(false);
+
+  const fetchInsights = async (force: boolean = false) => {
+    if (!force && hasFetchedSummary.current) return;
+    
+    setIsLoadingInsights(true);
+    hasFetchedSummary.current = true;
+    
+    try {
+      const response = await fetch('/api/analyze-diary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          records, 
+          themeMode, 
+          kidsTheme: isDinoTheme ? 'dino' : isSpaceTheme ? 'space' : isCarsTheme ? 'cars' : null 
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAiInsights(data);
+      } else {
+        const errText = await response.text();
+        console.error(`Gemini API Error: Status ${response.status} - ${errText}`);
+        setAiInsights({ therapistSummary: 'Não foi possível gerar a análise (Erro ' + response.status + '). Tente novamente mais tarde.' });
       }
-    };
-    if (records.length > 0) {
+    } catch (err) {
+      console.error('Failed to fetch AI insights (Network/CORS)', err);
+      setAiInsights({ therapistSummary: 'Não foi possível gerar a análise devido a um erro de conexão.' });
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  };
+
+  useEffect(() => {
+    if (records && records.length > 0 && !hasFetchedSummary.current) {
       fetchInsights();
-    } else {
+    } else if (!records || records.length === 0) {
       setIsLoadingInsights(false);
     }
   }, [records]);
