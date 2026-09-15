@@ -203,10 +203,10 @@ export default function App() {
     toggleRefuge(isRefugeActive, activeRefugeSound);
   }, [isRefugeActive, activeRefugeSound]);
 
-  const dbLevel = useGuardian(guardianMonitorActive, () => {}, micSensitivity);
-
-  const handlePanicStart = () => {
+  const handlePanicStart = useCallback(() => {
+    if (isPanicOpen) return;
     setIsPanicOpen(true);
+    setIsSmsOverlayOpen(true);
     setIsSmsSent(false);
     try {
       const email = localStorage.getItem('currentUserEmail');
@@ -223,16 +223,15 @@ export default function App() {
       localStorage.setItem(`diaryRecords_${email}`, JSON.stringify(records));
       window.dispatchEvent(new Event('diary-updated'));
     } catch(e) {}
-  };
+  }, [isPanicOpen, themeMode, childAutonomyFilter]);
 
-  useEffect(() => {
-    // Triggers: panic open or guardian hitting peak
-    const isTriggerActive = isPanicOpen || (guardianMonitorActive && dbLevel >= 75);
-    
-    if (isTriggerActive && !isSmsOverlayOpen) {
-      setIsSmsOverlayOpen(true);
+  const handleSustainedPeak = useCallback(() => {
+    if (interventionActive && !isPanicOpen) {
+      handlePanicStart();
     }
-  }, [isPanicOpen, guardianMonitorActive, dbLevel, isSmsOverlayOpen]);
+  }, [interventionActive, isPanicOpen, handlePanicStart]);
+
+  const dbLevel = useGuardian(guardianMonitorActive, handleSustainedPeak, micSensitivity);
 
   const handleSmsOverlayClose = (sendSms: boolean) => {
     setIsSmsOverlayOpen(false);
