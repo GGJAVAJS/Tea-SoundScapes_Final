@@ -676,28 +676,13 @@ function PrintableClinicalReport({
           </div>
       )}
 
-      {isLoadingInsights ? (
-        <div className="bg-[rgba(56,189,248,0.05)] rounded-2xl p-5 mb-4 border border-[rgba(56,189,248,0.3)] flex flex-col items-center justify-center">
-          <div className="w-8 h-8 border-4 border-[#38bdf8] border-t-transparent rounded-full animate-spin mb-3"></div>
-          <p className="text-sm text-[#e5e7eb]">Carregando análise da IA...</p>
-        </div>
-      ) : aiInsights?.therapistSummary ? (
+      {aiInsights?.therapistSummary && (
         <div className="bg-[rgba(56,189,248,0.05)] rounded-2xl p-5 mb-4 border border-[rgba(56,189,248,0.3)]">
             <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-[#38bdf8]" />
               Resumo Analítico da IA (Visão do Terapeuta)
             </h3>
             <p className="text-sm text-[#e5e7eb] leading-relaxed italic">{aiInsights.therapistSummary}</p>
-            {aiInsights.therapistSummary.includes('Não foi possível') && (
-              <div className="flex justify-center mt-4">
-                <button onClick={() => fetchInsights(true)} className="px-5 py-2 bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#0f172a] font-bold rounded-full text-sm transition-all shadow-[0_0_15px_rgba(56,189,248,0.4)]">Tentar Gerar Resumo Novamente</button>
-              </div>
-            )}
-        </div>
-      ) : records.length > 0 && (
-        <div className="bg-[rgba(56,189,248,0.05)] rounded-2xl p-5 mb-4 border border-[rgba(56,189,248,0.3)] flex flex-col items-center justify-center">
-           <p className="text-sm text-[#e5e7eb] mb-4">O resumo analítico ainda não foi gerado.</p>
-           <button onClick={() => fetchInsights(true)} className="px-5 py-2 bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#0f172a] font-bold rounded-full text-sm transition-all shadow-[0_0_15px_rgba(56,189,248,0.4)]">Gerar Resumo da IA</button>
         </div>
       )}
       
@@ -1120,7 +1105,12 @@ function AnalisesView({ isDinoTheme, isSpaceTheme, isCarsTheme, themeMode,
                <div className="h-3 bg-[rgba(255,255,255,0.1)] rounded w-full"></div>
                <div className="h-3 bg-[rgba(255,255,255,0.1)] rounded w-5/6"></div>
              </div>
-          ) : aiInsights.userInsight ? (
+          ) : aiInsights?.therapistSummary?.includes('Não foi possível') ? (
+             <div className="flex flex-col items-center gap-3 text-center">
+               <p className="text-sm text-[#f87171] leading-relaxed">{aiInsights.therapistSummary}</p>
+               <button onClick={() => fetchInsights(true)} className="px-5 py-2 bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#0f172a] font-bold rounded-full text-sm transition-all shadow-[0_0_15px_rgba(56,189,248,0.4)] mt-2">Tentar Gerar Resumo Novamente</button>
+             </div>
+          ) : aiInsights?.userInsight ? (
              <div className="flex flex-col gap-4">
                <div>
                  <h4 className="text-xs font-medium text-[#9ca3af] mb-1">Para Você:</h4>
@@ -1132,6 +1122,11 @@ function AnalisesView({ isDinoTheme, isSpaceTheme, isCarsTheme, themeMode,
                    <p className="text-xs text-[#d1d5db] leading-relaxed italic">{aiInsights.therapistSummary}</p>
                  </div>
                )}
+             </div>
+          ) : records.length > 0 ? (
+             <div className="flex flex-col items-center gap-3 text-center">
+               <p className="text-sm text-[#9ca3af]">A IA não gerou um resumo. Tente novamente.</p>
+               <button onClick={() => fetchInsights(true)} className="px-5 py-2 bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#0f172a] font-bold rounded-full text-sm transition-all shadow-[0_0_15px_rgba(56,189,248,0.4)]">Gerar Resumo da IA</button>
              </div>
           ) : (
              <p className="text-sm text-[#9ca3af]">A IA precisa de mais registros para gerar um resumo analítico.</p>
