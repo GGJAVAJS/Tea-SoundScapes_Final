@@ -253,13 +253,15 @@ export default function App() {
             const phones = contacts.map((c: any) => c.phone.replace(/\D/g, '')).join(',');
             const message = encodeURIComponent(`${userName} está passando por uma crise sensorial e pode precisar de apoio.`);
             
-            // Using the native SMS app via sms: URI scheme
-            // On iOS '&body=' is often used, on Android '?body=' is common.
-            // Using ?body as a default format standard
-            window.open(`sms:${phones}?body=${message}`, '_system');
+            // Em PWAs/Web Mobile, location.href é a forma mais confiável de abrir URIs nativos
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const separator = isIOS ? '&' : '?';
+            window.location.href = `sms:${phones}${separator}body=${message}`;
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error('Erro ao abrir SMS:', e);
+      }
     }
   };
 
