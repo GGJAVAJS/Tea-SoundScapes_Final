@@ -16,9 +16,9 @@ const CommunityView = lazy(() => import('./views/CommunityView').then(m => ({ de
 const DiaryView = lazy(() => import('./views/DiaryView').then(m => ({ default: m.DiaryView })));
 const ProfileView = lazy(() => import('./views/ProfileView').then(m => ({ default: m.ProfileView })));
 const PanicOverlay = lazy(() => import('./views/PanicOverlay').then(m => ({ default: m.PanicOverlay })));
-const RefugeOverlay = lazy(() => import('./views/RefugeOverlay').then(m => ({ default: m.RefugeOverlay })));
+
 const OnboardingView = lazy(() => import('./views/OnboardingView').then(m => ({ default: m.OnboardingView })));
-const GuardianAlertOverlay = lazy(() => import('./views/GuardianAlertOverlay').then(m => ({ default: m.GuardianAlertOverlay })));
+
 const EmergencySmsOverlay = lazy(() => import('./views/EmergencySmsOverlay').then(m => ({ default: m.EmergencySmsOverlay })));
 const AuthView = lazy(() => import('./views/AuthView').then(m => ({ default: m.AuthView })));
 const PinOverlay = lazy(() => import('./views/PinOverlay').then(m => ({ default: m.PinOverlay })));
@@ -130,10 +130,8 @@ export default function App() {
     try { return parseInt(localStorage.getItem('micSensitivity') || '100'); } catch(e) { return 100; }
   });
   const [interventionActive, setInterventionActive] = useState(true);
-  const [isGuardianAlertOpen, setIsGuardianAlertOpen] = useState(false);
 
   const [isSmsOverlayOpen, setIsSmsOverlayOpen] = useState(false);
-  const [lastSmsAlertTime, setLastSmsAlertTime] = useState<number | null>(null);
 
   const [importedSounds, setImportedSounds] = useState<{id: string, name: string, url: string}[]>([]);
 
@@ -205,14 +203,7 @@ export default function App() {
     toggleRefuge(isRefugeActive, activeRefugeSound);
   }, [isRefugeActive, activeRefugeSound]);
 
-  const handleSustainedPeak = useCallback(() => {
-    // Only suggest if intervention is active, refuge isn't already active, and no overlays are open
-    if (interventionActive && !isRefugeActive && !isPanicOpen && !isGuardianAlertOpen && !isRefugeOpen) {
-       setIsGuardianAlertOpen(true);
-    }
-  }, [interventionActive, isRefugeActive, isPanicOpen, isGuardianAlertOpen, isRefugeOpen]);
-
-  const dbLevel = useGuardian(guardianMonitorActive, handleSustainedPeak, micSensitivity);
+  const dbLevel = useGuardian(guardianMonitorActive, () => {}, micSensitivity);
 
   const handlePanicStart = () => {
     setIsPanicOpen(true);
@@ -239,18 +230,12 @@ export default function App() {
     const isTriggerActive = isPanicOpen || (guardianMonitorActive && dbLevel >= 75);
     
     if (isTriggerActive && !isSmsOverlayOpen) {
-      const now = Date.now();
-      const fifteenMins = 15 * 60 * 1000;
-      
-      if (!lastSmsAlertTime || (now - lastSmsAlertTime >= fifteenMins)) {
-        setIsSmsOverlayOpen(true);
-      }
+      setIsSmsOverlayOpen(true);
     }
-  }, [isPanicOpen, guardianMonitorActive, dbLevel, isSmsOverlayOpen, lastSmsAlertTime]);
+  }, [isPanicOpen, guardianMonitorActive, dbLevel, isSmsOverlayOpen]);
 
   const handleSmsOverlayClose = (sendSms: boolean) => {
     setIsSmsOverlayOpen(false);
-    setLastSmsAlertTime(Date.now());
     setIsSmsSent(sendSms);
     
     if (sendSms) {
@@ -279,12 +264,7 @@ export default function App() {
     }
   };
 
-  const acceptRefuge = () => {
-    setIsGuardianAlertOpen(false);
-    setActiveRefugeSound('som-b'); // Auto-select pink noise for panic intervention
-    setIsRefugeActive(true);
-    setIsRefugeOpen(true);
-  };
+
 
   const executeNavigation = (tab: TabIndex, subView: SubView = 'none', diaryStart?: 'registro'|'analises'|'relatorios') => {
     setCurrentTab(tab);
@@ -314,6 +294,20 @@ export default function App() {
 
   const handleSaveToDiaryAnalyses = () => {
     checkPinAndNavigate('diary', 'none', 'analises');
+  };
+
+  const handleKidsThemeChange = (newTheme: 'dino'|'space'|'cars') => {
+    setKidsTheme(newTheme);
+    if (currentUserEmail) {
+      try {
+        const dataStr = localStorage.getItem(`onboardingData_${currentUserEmail}`);
+        if (dataStr) {
+          const data = JSON.parse(dataStr);
+          data.kidsTheme = newTheme;
+          localStorage.setItem(`onboardingData_${currentUserEmail}`, JSON.stringify(data));
+        }
+      } catch (e) {}
+    }
   };
 
   if (!isLoggedIn) {
@@ -388,6 +382,7 @@ export default function App() {
                 setImportedSounds={setImportedSounds}
                 themeMode={themeMode}
                 kidsTheme={kidsTheme}
+                onThemeChange={handleKidsThemeChange}
               />
             )}
             {currentTab === 'guardian' && (
@@ -451,9 +446,7 @@ export default function App() {
                   setImportedSounds([]);
                   setPendingTab(null);
                   setDiaryStartView('registro');
-                  setLastSmsAlertTime(null);
                   setIsSmsOverlayOpen(false);
-                  setIsGuardianAlertOpen(false);
                   setIsPostCrisisDiaryOpen(false);
                   
                   document.body.classList.remove('child-mode');
@@ -471,7 +464,7 @@ export default function App() {
 
       {/* Hide bottom nav if subview is active in profile or panic is open */}
       <AnimatePresence>
-        {currentSubView === 'none' && !isPanicOpen && !isGuardianAlertOpen && !isRefugeOpen && (
+        {currentSubView === 'none' && !isPanicOpen && (
           <div className="hide-on-print">
             <BottomNav 
               activeTab={currentTab} 
@@ -484,32 +477,7 @@ export default function App() {
       </AnimatePresence>
 
       <Suspense fallback={null}>
-        <RefugeOverlay 
-          isOpen={isRefugeOpen} 
-          onClose={() => {
-            setIsRefugeOpen(false);
-            if (themeMode === 'child') {
-              // Silently register pending crisis ALWAYS for Refuge
-              try {
-                const email = localStorage.getItem('currentUserEmail');
-                const data = localStorage.getItem(`diaryRecords_${email}`);
-                const records = data ? JSON.parse(data) : [];
-                records.push({
-                  intensity: 50,
-                  moodId: 'pending',
-                  triggers: ['Uso do Refúgio (Pendente)'],
-                  estrategiaUsadaString: 'Som Refúgio',
-                  observacao: 'Registro automático (Aguardando preenchimento)',
-                  date: Date.now()
-                });
-                localStorage.setItem(`diaryRecords_${email}`, JSON.stringify(records));
-                window.dispatchEvent(new Event('diary-updated'));
-              } catch(e) {}
-            }
-          }} 
-          activeRefuge={activeRefugeSound}
-          onToggleRefuge={handleToggleRefugeSound}
-        />
+        
         {isPostCrisisDiaryOpen && (
           <div className="fixed inset-0 z-[100] bg-[#060b13] overflow-y-auto">
              <div className="max-w-md mx-auto p-6 pt-12 relative min-h-screen">
@@ -544,11 +512,7 @@ export default function App() {
             isSmsSent={isSmsSent}
           />
         )}
-        <GuardianAlertOverlay 
-           isOpen={isGuardianAlertOpen} 
-           onAccept={acceptRefuge} 
-           onDismiss={() => setIsGuardianAlertOpen(false)} 
-        />
+
         <EmergencySmsOverlay
            isOpen={isSmsOverlayOpen}
            onClose={handleSmsOverlayClose}

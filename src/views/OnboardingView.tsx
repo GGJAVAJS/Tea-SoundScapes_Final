@@ -49,7 +49,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
   const secondaryShadow = isChild ? 'shadow-[0_0_15px_rgba(255,92,0,0.2)]' : 'shadow-[0_0_15px_rgba(56,189,248,0.2)]';
   const primaryGlow = isChild ? 'shadow-[0_0_10px_rgba(255,92,0,0.5)]' : 'shadow-[0_0_10px_rgba(56,189,248,0.5)]';
 
-  const totalSteps = themeMode === 'child' ? 11 : 8;
+  const totalSteps = themeMode === 'child' ? 10 : 7;
   const nextStep = () => {
     setStep(prev => Math.min(prev + 1, totalSteps));
   }
@@ -334,65 +334,6 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
             </motion.div>
           )}
 
-          {(step === 7 && themeMode === 'adult' || step === 9 && themeMode === 'child') && (
-            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex flex-col gap-6">
-              <h1 className="text-3xl font-light text-white leading-tight">Vamos encontrar o Seu Refúgio 🎧</h1>
-              <p className="text-gray-300 text-lg">Coloque os fones de ouvido. Qual destes sons te deixa mais calmo(a) e confortável?</p>
-              
-              <div className="flex flex-col gap-4 mt-4">
-                {REFUGE_SOUNDS.map(sound => {
-                  const isPlaying = playingPreview === sound.id;
-                  const isSelected = refugeSound === sound.id;
-                  
-                  return (
-                    <div 
-                      key={sound.id}
-                      onClick={() => setRefugeSound(sound.id)}
-                      className={`p-4 rounded-2xl flex items-center gap-4 transition-all cursor-pointer border ${
-                        isSelected ? `${isChild ? "bg-[#ff5c00]/20 border-[#ff5c00] shadow-[0_0_15px_rgba(255,92,0,0.2)]" : "bg-accent-blue/20 border-accent-blue shadow-[0_0_15px_rgba(56,189,248,0.2)]"}` : "bg-white/5 border-white/10 hover:bg-white/10"
-                      }`}
-                    >
-                      <button 
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          
-                          // First stop whatever is currently playing
-                          ['som-a', 'som-b', 'som-c'].forEach(s => stopSound(s));
-                          
-                          if (isPlaying) {
-                            setPlayingPreview(null);
-                          } else {
-                            setPlayingPreview(sound.id);
-                            // explicitly trigger play on click to avoid AudioContext restrictions
-                            // the AudioContext resume happens inside playSound
-                            await playSound(sound.id);
-                          }
-                        }}
-                        className={`w-12 h-12 shrink-0 rounded-full border flex items-center justify-center transition-colors ${
-                           isPlaying ? `${primaryBg} text-white ${primaryBorder}` : "bg-white/10 border-white/20 text-white"
-                        }`}
-                      >
-                         {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 ml-1 fill-current" />}
-                      </button>
-                      <span className="text-sm font-medium text-white">{sound.label}</span>
-                      {isSelected && <Check className={`w-5 h-5 ${primaryText} ml-auto shrink-0`} strokeWidth={3} />}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <p className="text-center text-white font-medium mt-4">Qual você escolhe como seu som de emergência?</p>
-
-              <button 
-                onClick={nextStep}
-                disabled={!refugeSound}
-                className={`${primaryBg} text-white font-bold py-4 rounded-full w-full mt-4 ${primaryShadow} disabled:opacity-50 disabled:shadow-none transition-all`}
-              >
-                Salvar Meu Refúgio
-              </button>
-            </motion.div>
-          )}
-
           {step === 7 && themeMode === 'child' && (
             <motion.div key="stepKidsTheme" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col text-center items-center justify-center h-full gap-6">
               <h1 className="text-3xl font-bold text-[#ff5c00] leading-tight">Qual é o seu mundo favorito? 🌎</h1>
@@ -444,7 +385,7 @@ export function OnboardingView({ onComplete }: OnboardingProps) {
               </button>
             </motion.div>
           )}
-          {step === 10 && themeMode === 'child' && (
+          {step === 9 && themeMode === 'child' && (
             <motion.div key="stepPin" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col text-center items-center justify-center h-full gap-6">
               <h1 className={`text-3xl font-bold ${primaryText} leading-tight`}>Proteger o Diário 🔒</h1>
               <p className="text-gray-300 text-sm">O Diário guarda informações sensíveis das crises e análises. Vamos protegê-lo com uma senha (PIN) apenas para pais e terapeutas.</p>

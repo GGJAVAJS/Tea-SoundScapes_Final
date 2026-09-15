@@ -12,7 +12,7 @@ import RainShader from '../components/ui/rain-shader';
 import UniverseWithinShader from '../components/ui/UniverseWithinShader';
 import { PublishMixOverlay } from "./PublishMixOverlay";
 import { AdultMixerOverlay } from "../components/AdultMixerOverlay";
-import { Music, Coffee, Heart, CloudRain, Wind, Activity, Plus, ShieldAlert, MoreVertical, X, SlidersHorizontal, Flame, Droplets, Bird, Trees, ChevronDown, Eye, EyeOff, Pause, Play, Bookmark, Brain, Grid3x3, Moon, Bus, Baby, BookOpen, Trash2 } from 'lucide-react';
+import { Music, Coffee, Heart, CloudRain, Wind, Activity, Plus, ShieldAlert, MoreVertical, X, SlidersHorizontal, Flame, Droplets, Bird, Trees, ChevronDown, Eye, EyeOff, Pause, Play, Bookmark, Brain, Grid3x3, Moon, Bus, Baby, BookOpen, Trash2, Rocket, Footprints, Car, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -30,13 +30,14 @@ interface HomeViewProps {
   setImportedSounds: React.Dispatch<React.SetStateAction<{id: string, name: string, url: string}[]>>;
   themeMode?: 'adult' | 'child';
   kidsTheme?: 'dino' | 'space' | 'cars' | null;
+  onThemeChange?: (theme: 'dino' | 'space' | 'cars') => void;
 }
 
 
 
 function MixerOverlay({ dominantSoundId, dominantLabel, DominantIcon, activeSoundIds, allMixerSounds, volumes, handleVolumeChange, setIsMixerOpen, isGlobalPause, setIsGlobalPause, eq, handleEQChange, themeMode, kidsTheme, onFavorite }) {
   const [isUiHidden, setIsUiHidden] = useState(false);
-  const [showEQ, setShowEQ] = useState(false);
+  const [showEQ, setShowEQ] = useState(themeMode === 'child');
 
   const isSpaceTheme = themeMode === 'child' && kidsTheme === 'space';
   const isDinoTheme = themeMode === 'child' && kidsTheme === 'dino';
@@ -327,7 +328,7 @@ function getIconComponentForName(title: string) {
 }
 
 
-export function HomeView({ onPanic, onRefugeToggle, isRefugeActive, activeSounds, toggleSound, importedSounds, setImportedSounds, themeMode, kidsTheme }: HomeViewProps) {
+export function HomeView({ onPanic, onRefugeToggle, isRefugeActive, activeSounds, toggleSound, importedSounds, setImportedSounds, themeMode, kidsTheme, onThemeChange }: HomeViewProps) {
   const isDinoTheme = themeMode === 'child' && kidsTheme === 'dino';
   const isSpaceTheme = themeMode === 'child' && kidsTheme === 'space';
   const isCarsTheme = themeMode === 'child' && kidsTheme === 'cars';
@@ -337,6 +338,7 @@ export function HomeView({ onPanic, onRefugeToggle, isRefugeActive, activeSounds
 
   const [isMixerOpen, setIsMixerOpen] = useState(false);
   const [isGlobalPause, setIsGlobalPause] = useState(false);
+  const [isWorldSelectorOpen, setIsWorldSelectorOpen] = useState(false);
 
 
   const handleToggleSound = (id: string, url?: string) => {
@@ -481,6 +483,14 @@ export function HomeView({ onPanic, onRefugeToggle, isRefugeActive, activeSounds
                 <MoreVertical className="w-6 h-6" />
               </button>
             </>
+          )}
+          {themeMode === 'child' && (
+             <button 
+               onClick={() => setIsWorldSelectorOpen(true)} 
+               className="px-4 py-2 bg-accent-blue text-white rounded-full font-bold text-sm shadow-[0_0_15px_rgba(56,189,248,0.3)] hover:scale-105 transition-all flex items-center gap-2"
+             >
+               <Globe className="w-4 h-4" /> Mundos
+             </button>
           )}
         </div>
       </header>
@@ -663,31 +673,7 @@ export function HomeView({ onPanic, onRefugeToggle, isRefugeActive, activeSounds
       </div>
       )}
 
-      <div className="flex gap-4 mt-auto shrink-0 mb-4">
-        <button
-          onClick={onRefugeToggle}
-          className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-full border overflow-hidden transition-all duration-200 font-medium active:scale-95 hover:scale-[1.02] ${
-            isRefugeActive 
-              ? (isDinoTheme 
-                  ? 'bg-[#553100] text-[#80F356] shadow-[0_0_20px_rgba(85,49,0,0.6)] border-white/30 hover:brightness-110' 
-                  : isSpaceTheme 
-                  ? 'bg-[#602EC9] text-white shadow-[0_0_20px_rgba(96,46,201,0.4)] border-transparent hover:brightness-110 hover:shadow-[0_0_25px_rgba(96,46,201,0.6)]'
-                  : isCarsTheme
-                  ? 'bg-[#FACC15] text-black shadow-[0_0_20px_rgba(250,204,21,0.4)] border-transparent hover:brightness-110 hover:shadow-[0_0_25px_rgba(250,204,21,0.6)]'
-                  : 'bg-accent-blue text-white shadow-[0_0_20px_rgba(56,189,248,0.4)] border-transparent hover:brightness-110 hover:shadow-[0_0_25px_rgba(56,189,248,0.6)]')
-              : (isDinoTheme 
-                  ? 'bg-[#553100] text-[#80F356] border-white/10 hover:brightness-125 hover:border-[#80F356]/40 hover:shadow-[0_0_15px_rgba(128,243,86,0.2)]'
-                  : isSpaceTheme
-                  ? 'bg-white/5 hover:bg-white/15 text-[#602EC9] border-white/10 hover:border-white/30 hover:shadow-[0_0_15px_rgba(96,46,201,0.25)]'
-                  : isCarsTheme
-                  ? 'bg-white/5 hover:bg-white/15 text-[#FACC15] border-white/10 hover:border-white/30 hover:shadow-[0_0_15px_rgba(250,204,21,0.25)]'
-                  : 'bg-white/5 hover:bg-white/15 text-accent-blue border-white/10 hover:border-white/30 hover:shadow-[0_0_15px_rgba(56,189,248,0.25)]')
-          }`}
-        >
-          <ShieldAlert className="w-5 h-5 fill-current" />
-          Meu Refúgio
-        </button>
-        
+      <div className="flex justify-center mt-auto shrink-0 mb-4">
         <button
           onClick={onPanic}
           className="w-24 h-24 rounded-full bg-[#e11d48] hover:bg-[#be123c] border-2 border-white/20 text-white flex flex-col items-center justify-center p-2 shadow-[0_0_30px_rgba(225,29,72,0.6)] hover:scale-105 active:scale-95 transition-all"
@@ -696,6 +682,67 @@ export function HomeView({ onPanic, onRefugeToggle, isRefugeActive, activeSounds
           <span className="text-xs font-semibold text-white">PÂNICO</span>
         </button>
       </div>
+
+      <AnimatePresence>
+        {isWorldSelectorOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              onClick={() => setIsWorldSelectorOpen(false)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+              className="relative w-full max-w-sm bg-gray-900 border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col items-center gap-6"
+            >
+              <h2 className="text-2xl font-bold text-white text-center">Para qual mundo você quer ir?</h2>
+              
+              <div className="flex flex-col gap-4 w-full">
+                <button 
+                  onClick={() => { onThemeChange?.('space'); setIsWorldSelectorOpen(false); }}
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-[#602EC9]/20 border border-[#602EC9]/50 hover:bg-[#602EC9]/40 hover:scale-105 active:scale-95 transition-all w-full"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[#602EC9] flex items-center justify-center shrink-0">
+                    <Rocket className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xl font-bold text-white">Espaço</span>
+                </button>
+
+                <button 
+                  onClick={() => { onThemeChange?.('dino'); setIsWorldSelectorOpen(false); }}
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-[#553100]/40 border border-[#80F356]/50 hover:bg-[#553100]/60 hover:scale-105 active:scale-95 transition-all w-full"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[#80F356] flex items-center justify-center shrink-0">
+                    <Footprints className="w-6 h-6 text-[#553100]" />
+                  </div>
+                  <span className="text-xl font-bold text-white">Dinossauros</span>
+                </button>
+
+                <button 
+                  onClick={() => { onThemeChange?.('cars'); setIsWorldSelectorOpen(false); }}
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-[#FACC15]/20 border border-[#FACC15]/50 hover:bg-[#FACC15]/40 hover:scale-105 active:scale-95 transition-all w-full"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[#FACC15] flex items-center justify-center shrink-0">
+                    <Car className="w-6 h-6 text-black" />
+                  </div>
+                  <span className="text-xl font-bold text-white">Carros</span>
+                </button>
+              </div>
+
+              <button 
+                onClick={() => setIsWorldSelectorOpen(false)}
+                className="mt-2 text-gray-400 hover:text-white transition-colors"
+              >
+                Voltar
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {typeof document !== 'undefined' && createPortal(
         <>
