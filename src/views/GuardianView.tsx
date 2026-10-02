@@ -335,8 +335,8 @@ function DinoInteractiveScene() {
 
 function CarsHeartbeatPulses({ dbLevel }: { dbLevel: number }) {
   const [pulses, setPulses] = useState<{ id: number; x: number; y: number }[]>([]);
-  const isExtremeAlert = dbLevel >= 70;
-  const isAlert = dbLevel >= 40 && dbLevel < 70;
+  const isExtremeAlert = dbLevel >= 125;
+  const isAlert = dbLevel >= 40 && dbLevel < 125;
 
   useEffect(() => {
     // Pulse rate based on alert
@@ -391,8 +391,8 @@ function CarsHeartbeatPulses({ dbLevel }: { dbLevel: number }) {
 
 
 function CarsTrafficLightBackground({ dbLevel }: { dbLevel: number }) {
-  const isExtremeAlert = dbLevel >= 70;
-  const isAlert = dbLevel >= 40 && dbLevel < 70;
+  const isExtremeAlert = dbLevel >= 125;
+  const isAlert = dbLevel >= 40 && dbLevel < 125;
   const isSafe = dbLevel < 40;
   
   return (
@@ -473,12 +473,12 @@ export function GuardianView({
   const isCarsTheme = themeMode === 'child' && kidsTheme === 'cars';
   const isChildTheme = isSpaceTheme || isDinoTheme || isCarsTheme;
   useEffect(() => {
-    if (isCarsTheme && dbLevel >= 70 && onPanic) {
+    if (isCarsTheme && dbLevel >= 125 && onPanic) {
       onPanic();
     }
   }, [dbLevel, isCarsTheme, onPanic]);
 
-  const isAlert = isChildTheme ? dbLevel > 40 : dbLevel > 65;
+  const isAlert = isChildTheme ? dbLevel > 40 : dbLevel >= 125;
   
   // State for the settings prompt notification
   const [showSettingsPrompt, setShowSettingsPrompt] = useState(true);
@@ -612,7 +612,7 @@ export function GuardianView({
           <div className="z-20 text-center glass-card-active p-8 rounded-full border border-accent-blue/30 shadow-[0_0_60px_rgba(56,189,248,0.15)] min-w-[200px] min-h-[200px] flex flex-col items-center justify-center relative overflow-hidden">
             <motion.div 
                 className="absolute bottom-0 left-0 right-0 bg-accent-blue/10"
-                animate={{ height: `${Math.min(dbLevel, 100)}%` }}
+                animate={{ height: `${Math.min((dbLevel/125)*100, 100)}%` }}
                 transition={{ duration: 0.3 }}
             />
             <motion.div 

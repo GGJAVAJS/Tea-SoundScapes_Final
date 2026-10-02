@@ -28,7 +28,7 @@ Ela possui regras estritas baseadas no Modo Atual (Adulto vs Infantil):
   - **Estética & Layout:** Fundo asfalto (cinza super escuro). Utiliza formas geométricas limpas lembrando um poste/semáforo (borda preta arredondada com as 3 lentes).
   - **Luz Verde (Ruído Seguro):** Verde neon brilhante (`#22c55e` ou similar) pulsando suavemente com brilho externo (Glow).
   - **Luz Amarela (Atenção):** Amarelo vibrante (`#eab308`), aciona quando o ruído ambiente passa de 40dB.
-  - **Luz Vermelha (Perigo):** Vermelho sangue intenso (`#ef4444`), aciona aos 70dB ou mais, e aciona o redirecionamento imediato para a tela SOS Pânico.
+  - **Luz Vermelha (Perigo):** Vermelho sangue intenso (`#ef4444`), aciona aos 125dB ou mais, e aciona o redirecionamento imediato para a tela SOS Pânico.
 
 
 ### 1.4 Regra de Ouro: Isolamento de Modos (Adulto vs Infantil)

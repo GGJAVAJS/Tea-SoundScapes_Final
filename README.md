@@ -9,7 +9,7 @@ Aplicação Web Progressiva (PWA) interativa desenvolvida para auxiliar na autor
 * **Modo Infantil & Seletor de Mundos:** Interface lúdica com troca dinâmica entre os temas **Espaço**, **Dinossauros** e **Carros**[cite: 9], adaptando cores, elementos visuais e termômetros de humor[cite: 9].
 * **Modo Adulto:** Interface minimalista e direta, focada em controle acústico rápido e acompanhamento de métricas.
 * **Mixer Sonoro & Equalizador:** Reprodução simultânea de ruídos terapêuticos e sons da natureza com equalizador de 3 bandas (Graves, Médios e Agudos).
-* **Guardião (Decibelímetro & 3D):** Monitoramento de ruído ambiente em tempo real com cenário 3D interativo (`WebGL`) e gatilho automático de emergência ao atingir **75dB**.
+* **Guardião (Decibelímetro & 3D):** Monitoramento de ruído ambiente em tempo real com cenário 3D interativo (`WebGL`) e gatilho automático de emergência ao atingir **125dB**.
 * **SOS Pânico:** Acesso rápido centralizado para momentos de crise sensorial, com opção imediata de notificação de familiares e animações imersivas calmantes.
 * **Diário & Relatório com IA:** Registro diário de humor e crises integrado à API do **Google Gemini**, gerando resumos analíticos exportáveis em PDF para apoio terapêutico.
 

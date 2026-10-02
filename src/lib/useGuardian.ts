@@ -91,7 +91,7 @@ export function useGuardian(active: boolean, onSustainedPeak: () => void, sensit
             currentDb = Math.round((sensitivityRef.current - 15) + dbFullScale); 
           }
           
-          const mappedUserDb = Math.max(0, Math.min(120, currentDb));
+          const mappedUserDb = Math.max(0, Math.min(150, currentDb));
           
           // Only update state every ~100ms (10fps) to avoid destroying React rendering performance
           if (Date.now() - lastStateUpdate.current > 100) {
@@ -103,8 +103,8 @@ export function useGuardian(active: boolean, onSustainedPeak: () => void, sensit
             lastStateUpdate.current = Date.now();
           }
 
-          // Detect sustained peak (e.g., > 65 estimated dB)
-          if (mappedUserDb > 65) {
+          // Detect sustained peak (e.g., >= 125 estimated dB)
+          if (mappedUserDb >= 125) {
              peakFrames.current++;
              if (peakFrames.current > 60 * 3) { // 3 seconds sustained (approx)
                 callbackRef.current();
