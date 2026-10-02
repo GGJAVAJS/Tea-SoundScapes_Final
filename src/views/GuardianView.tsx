@@ -335,8 +335,8 @@ function DinoInteractiveScene() {
 
 function CarsHeartbeatPulses({ dbLevel }: { dbLevel: number }) {
   const [pulses, setPulses] = useState<{ id: number; x: number; y: number }[]>([]);
-  const isExtremeAlert = dbLevel >= 125;
-  const isAlert = dbLevel >= 40 && dbLevel < 125;
+  const isExtremeAlert = dbLevel >= 95;
+  const isAlert = dbLevel >= 40 && dbLevel < 95;
 
   useEffect(() => {
     // Pulse rate based on alert
@@ -391,8 +391,8 @@ function CarsHeartbeatPulses({ dbLevel }: { dbLevel: number }) {
 
 
 function CarsTrafficLightBackground({ dbLevel }: { dbLevel: number }) {
-  const isExtremeAlert = dbLevel >= 125;
-  const isAlert = dbLevel >= 40 && dbLevel < 125;
+  const isExtremeAlert = dbLevel >= 95;
+  const isAlert = dbLevel >= 40 && dbLevel < 95;
   const isSafe = dbLevel < 40;
   
   return (
